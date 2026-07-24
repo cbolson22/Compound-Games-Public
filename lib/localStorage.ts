@@ -2,12 +2,32 @@ import { dayBefore } from './dates'
 
 export type GameResult = {
   time_seconds: number | null
-  score: number | null
+  score?: number | null
   completed_at: string
   share: string
+  solveData?: Record<string, unknown>
 }
 
 const key = (game: string, date: string) => `cg_${game}_${date}`
+const archiveKey = (game: string, date: string) => `cga_${game}_${date}`
+
+export function getArchiveResult(game: string, date: string): GameResult | null {
+  if (typeof window === 'undefined') return null
+  const raw = localStorage.getItem(archiveKey(game, date))
+  if (!raw) return null
+  try { return JSON.parse(raw) as GameResult } catch { return null }
+}
+
+export function saveArchiveResult(game: string, date: string, result: GameResult): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(archiveKey(game, date), JSON.stringify(result))
+}
+
+export function hasPlayedArchive(game: string, date: string): boolean {
+  if (typeof window === 'undefined') return false
+  return localStorage.getItem(key(game, date)) !== null ||
+         localStorage.getItem(archiveKey(game, date)) !== null
+}
 
 export function saveResult(game: string, date: string, result: GameResult): void {
   if (typeof window === 'undefined') return
@@ -67,7 +87,7 @@ export function getBestScore(game: string): number | null {
     if (!k?.startsWith(`cg_${game}_`)) continue
     try {
       const r = JSON.parse(localStorage.getItem(k)!) as GameResult
-      if (r.score !== null && (best === null || r.score > best)) {
+      if (r.score != null && (best === null || r.score > best)) {
         best = r.score
       }
     } catch { /* skip */ }

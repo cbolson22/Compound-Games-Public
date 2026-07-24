@@ -4,7 +4,7 @@ import CompondusClient from './CompondusClient'
 import { supabase } from '@/lib/supabase'
 import { getTodaysCT } from '@/lib/dates'
 import { generateCompondus, type CompondusPuzzle } from '@/lib/puzzles/compondus'
-import { getPuzzleNumber } from '@/lib/puzzleNumber'
+import { getGamePuzzleNumber } from '@/lib/puzzleNumber'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,17 +14,12 @@ export const metadata: Metadata = {
 
 async function getTodaysPuzzle(): Promise<{ puzzle: CompondusPuzzle; puzzleId: string | null; puzzleDate: string; puzzleNumber: number }> {
   const today = getTodaysCT()
-  const { data } = await supabase
-    .from('daily_puzzles')
-    .select('id, puzzle_data')
-    .eq('game', 'compondus')
-    .eq('puzzle_date', today)
-    .single()
+  const { data } = await supabase.from('daily_puzzles').select('id, puzzle_data').eq('game', 'compondus').eq('puzzle_date', today).single()
   return {
     puzzle: (data?.puzzle_data as CompondusPuzzle) ?? generateCompondus(),
     puzzleId: data?.id ?? null,
     puzzleDate: today,
-    puzzleNumber: getPuzzleNumber(today),
+    puzzleNumber: getGamePuzzleNumber('compondus', today),
   }
 }
 

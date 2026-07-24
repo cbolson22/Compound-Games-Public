@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { fmtTime } from '@/lib/format'
-import { saveResult, getResult, computeStreak } from '@/lib/localStorage'
+import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
 import { useLoopa, hKey, vKey, cellEdgeCount, type EdgeKey } from './useLoopa'
 import type { LoopaPuzzle } from '@/lib/puzzles/loopa'
 import styles from './loopa.module.css'
@@ -31,18 +31,20 @@ export default function LoopaBoard({
   puzzleId,
   puzzleDate,
   puzzleNumber,
+  isArchive = false,
 }: {
   puzzle: LoopaPuzzle
   puzzleId: string | null
   puzzleDate: string
   puzzleNumber: number
+  isArchive?: boolean
 }) {
   const [{ savedResult, alreadyPlayed, streak }] = useState(() => {
-    const result = getResult('loopa', puzzleDate)
+    const result = getResult('loopa', puzzleDate) ?? (isArchive ? getArchiveResult('loopa', puzzleDate) : null)
     return {
       savedResult: result,
       alreadyPlayed: result !== null,
-      streak: result !== null ? computeStreak('loopa', puzzleDate) : 0,
+      streak: result !== null && !isArchive ? computeStreak('loopa', puzzleDate) : 0,
     }
   })
   const solveSubmitted = useRef(false)
@@ -54,7 +56,8 @@ export default function LoopaBoard({
   })
 
   const [savedEdges] = useState<string[] | undefined>(() => {
-    if (alreadyPlayed || !storageKey) return undefined
+    if (alreadyPlayed) return savedResult?.solveData?.edges as string[] | undefined
+    if (!storageKey) return undefined
     try {
       const raw = localStorage.getItem(storageKey)
       if (!raw) return undefined
@@ -98,12 +101,13 @@ export default function LoopaBoard({
       localStorage.removeItem(storageKey)
       localStorage.removeItem(`${storageKey}-elapsed`)
     }
-    const share = `Compound Games – Loopa #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
-    saveResult('loopa', puzzleDate, {
+    const share = `Loopa #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('loopa', puzzleDate, {
       time_seconds: elapsed,
-      score: null,
       completed_at: new Date().toISOString(),
       share,
+      solveData: { edges: [...edges] },
     })
   }, [solved, elapsed, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
 
@@ -111,7 +115,7 @@ export default function LoopaBoard({
   const isDone = solved || alreadyPlayed
   const shareText = alreadyPlayed
     ? savedResult?.share
-    : `Compound Games – Loopa #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+    : `Loopa #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
 
   const handleShare = () => {
     navigator.clipboard.writeText(shareText ?? '').then(() => {

@@ -4,7 +4,7 @@ import AquarumClient from './AquarumClient'
 import { supabase } from '@/lib/supabase'
 import { getTodaysCT } from '@/lib/dates'
 import { generateAquarum } from '@/lib/puzzles/aquarum'
-import { getPuzzleNumber } from '@/lib/puzzleNumber'
+import { getGamePuzzleNumber } from '@/lib/puzzleNumber'
 import type { AquarumPuzzle } from '@/components/games/aquarum/useAquarum'
 
 export const dynamic = 'force-dynamic'
@@ -15,17 +15,12 @@ export const metadata: Metadata = {
 
 async function getTodaysPuzzle(): Promise<{ puzzle: AquarumPuzzle; puzzleId: string | null; puzzleDate: string; puzzleNumber: number }> {
   const today = getTodaysCT()
-  const { data } = await supabase
-    .from('daily_puzzles')
-    .select('id, puzzle_data')
-    .eq('game', 'aquarum')
-    .eq('puzzle_date', today)
-    .single()
+  const { data } = await supabase.from('daily_puzzles').select('id, puzzle_data').eq('game', 'aquarum').eq('puzzle_date', today).single()
   return {
     puzzle: (data?.puzzle_data as AquarumPuzzle) ?? generateAquarum(),
     puzzleId: data?.id ?? null,
     puzzleDate: today,
-    puzzleNumber: getPuzzleNumber(today),
+    puzzleNumber: getGamePuzzleNumber('aquarum', today),
   }
 }
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useCompondus, type CompondusSavedState } from './useCompondus'
 import type { CompondusPuzzle } from '@/lib/puzzles/compondus'
-import { saveResult, getResult } from '@/lib/localStorage'
+import { saveResult, saveArchiveResult, getResult, getArchiveResult } from '@/lib/localStorage'
 import styles from './compondus.module.css'
 
 function AnchorRow({ word, position }: { word: string; position: 'start' | 'end' }) {
@@ -65,18 +65,21 @@ export default function CompondusBoard({
   puzzleId,
   puzzleDate,
   puzzleNumber,
+  isArchive = false,
 }: {
   puzzle: CompondusPuzzle
   puzzleId: string | null
   puzzleDate: string
   puzzleNumber: number
+  isArchive?: boolean
 }) {
   const [{ savedResult, alreadyPlayed }] = useState(() => {
-    const result = getResult('compondus', puzzleDate)
+    const result = getResult('compondus', puzzleDate) ?? (isArchive ? getArchiveResult('compondus', puzzleDate) : null)
     return { savedResult: result, alreadyPlayed: result !== null }
   })
   const solveSubmitted = useRef(false)
   const startTimeRef = useRef(Date.now())
+  const perSlotWrong = useRef<number[]>(Array(puzzle.chain.length - 2).fill(0))
 
   const [typedLetters, setTypedLetters] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
@@ -112,8 +115,13 @@ export default function CompondusBoard({
   }, [currentSlot, wrongCount]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = useCallback(() => {
-    submit(typedLetters)
-  }, [submit, typedLetters])
+    const target = hidden[currentSlot]
+    const fullGuess = target.slice(0, revealedCounts[currentSlot] ?? 0) + typedLetters.join('')
+    const correct = submit(typedLetters)
+    if (!correct && fullGuess.length >= target.length) {
+      perSlotWrong.current[currentSlot] = (perSlotWrong.current[currentSlot] ?? 0) + 1
+    }
+  }, [submit, typedLetters, currentSlot, hidden, revealedCounts])
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (solved || alreadyPlayed) return
@@ -136,14 +144,22 @@ export default function CompondusBoard({
     solveSubmitted.current = true
     if (storageKey) localStorage.removeItem(storageKey)
     const timeTaken = Math.floor((Date.now() - startTimeRef.current) / 1000)
-    const share = `Compound Games – Compondus #${puzzleNumber}\n🎯 ${wrongCount} wrong guess${wrongCount !== 1 ? 'es' : ''}\ncompound-games.com`
-    saveResult('compondus', puzzleDate, {
+    const NUM_EMOJIS = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣']
+    const slotEmojis = perSlotWrong.current.map(wrong => {
+      if (wrong === 0) return '✅'
+      if (wrong > 9) return '➕'
+      return NUM_EMOJIS[wrong - 1]
+    }).join(' ')
+    const share = `Compondus #${puzzleNumber}\n${slotEmojis}\n🎯 ${wrongCount} wrong guess${wrongCount !== 1 ? 'es' : ''}\ncompound-games.com`
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('compondus', puzzleDate, {
       time_seconds: timeTaken,
       score: wrongCount,
       completed_at: new Date().toISOString(),
       share,
+      solveData: { perSlotWrong: [...perSlotWrong.current] },
     })
-  }, [solved, wrongCount, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
+  }, [solved, wrongCount, revealedCounts, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
 
   useEffect(() => {
     if (!storageKey || alreadyPlayed || solved) return
@@ -160,7 +176,15 @@ export default function CompondusBoard({
   const displayRevealedCounts = played ? hidden.map(w => w.length) : revealedCounts
   const shareText = alreadyPlayed
     ? savedResult?.share
-    : `Compound Games – Compondus #${puzzleNumber}\n🎯 ${wrongCount} wrong guess${wrongCount !== 1 ? 'es' : ''}\ncompound-games.com`
+    : (() => {
+        const NUM_EMOJIS = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣']
+        const slotEmojis = perSlotWrong.current.map(wrong => {
+          if (wrong === 0) return '✅'
+          if (wrong > 9) return '➕'
+          return NUM_EMOJIS[wrong - 1]
+        }).join(' ')
+        return `Compondus #${puzzleNumber}\n${slotEmojis}\n🎯 ${wrongCount} wrong guess${wrongCount !== 1 ? 'es' : ''}\ncompound-games.com`
+      })()
 
   const handleShare = () => {
     navigator.clipboard.writeText(shareText ?? '').then(() => {

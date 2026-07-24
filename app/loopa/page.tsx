@@ -4,7 +4,7 @@ import LoopaClient from './LoopaClient'
 import { supabase } from '@/lib/supabase'
 import { getTodaysCT } from '@/lib/dates'
 import { generateLoopa, type LoopaPuzzle } from '@/lib/puzzles/loopa'
-import { getPuzzleNumber } from '@/lib/puzzleNumber'
+import { getGamePuzzleNumber } from '@/lib/puzzleNumber'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,17 +14,12 @@ export const metadata: Metadata = {
 
 async function getTodaysPuzzle(): Promise<{ puzzle: LoopaPuzzle; puzzleId: string | null; puzzleDate: string; puzzleNumber: number }> {
   const today = getTodaysCT()
-  const { data } = await supabase
-    .from('daily_puzzles')
-    .select('id, puzzle_data')
-    .eq('game', 'loopa')
-    .eq('puzzle_date', today)
-    .single()
+  const { data } = await supabase.from('daily_puzzles').select('id, puzzle_data').eq('game', 'loopa').eq('puzzle_date', today).single()
   return {
     puzzle: (data?.puzzle_data as LoopaPuzzle) ?? generateLoopa(),
     puzzleId: data?.id ?? null,
     puzzleDate: today,
-    puzzleNumber: getPuzzleNumber(today),
+    puzzleNumber: getGamePuzzleNumber('loopa', today),
   }
 }
 

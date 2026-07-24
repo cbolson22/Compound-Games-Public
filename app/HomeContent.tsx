@@ -10,34 +10,34 @@ const GAMES = [
   { href: '/lumis', name: 'Lumis', desc: 'Daily Memory Puzzle', key: 'lumis' },
   { href: '/verba', name: 'Verba', desc: 'Daily Word Game', key: 'verba' },
   { href: '/aquarum', name: 'Aquarum', desc: 'Daily Pipe Puzzle', key: 'aquarum' },
-  { href: '/compondus', name: 'Compondus', desc: 'Compound Word Chain', key: 'compondus' },
-  { href: '/loopa', name: 'Loopa', desc: 'Draw a Closed Loop', key: 'loopa' },
+  { href: '/compondus', name: 'Compondus', desc: 'Daily Word Chain', key: 'compondus' },
+  { href: '/loopa', name: 'Loopa', desc: 'Daily Loop Puzzle', key: 'loopa' },
 ] as const
 
 const TUTORIAL_CONTENT: Record<string, { title: string; body: string }> = {
   numeris: {
     title: 'How to play Numeris',
-    body: 'Arrange the number and operator tiles into the slots to form a math equation that equals the target number. Drag tiles from the tray into the slots, or tap a tile to place it in the next empty slot. Tap a filled slot to send it back to the tray. You must use all tiles.',
+    body: 'Arrange the number and operator tiles into the slots to form a math equation that equals the target number. Drag tiles from the tray into the slots, or tap a tile to place it in the next empty slot. Tap a filled slot to return it to the tray, or drag slots into each other to swap them. You must use all tiles.',
   },
   lumis: {
     title: 'How to play Lumis',
-    body: 'A pattern of lit cells appears on the grid, then goes dark once you pick up your first piece. Recreate the pattern from memory by dragging each piece into the correct place, or clicking a piece then clicking the correct cell to place it. You can reset the board at any time to see the pattern again.',
+    body: 'A pattern of lit cells appears on the grid — memorize it. Pick up your first piece to start the timer and turn the lights off, then place all pieces to recreate the pattern from memory. Drag pieces onto the grid, or tap a piece then tap a cell to place it. Hit Reset any time to see the pattern again.',
   },
   verba: {
     title: 'How to play Verba',
-    body: 'Place letter tiles onto the grid to form words across rows and columns. Letters always fall to the bottom of the column when placed. Words are detected automatically — longer words and rarer letters score more points. Arrange your tiles to maximize your score before time runs out.',
+    body: 'Place letter tiles onto the grid to form words across rows and columns. Letters fall to the bottom of the column when placed. Words are detected automatically — longer words and rarer letters score more points. You have 60 seconds to arrange your tiles and maximize your score.',
   },
   aquarum: {
     title: 'How to play Aquarum',
-    body: 'Rotate the pipe segments to connect each colored inlet to its matching colored outlet. Tap any pipe to rotate it. All paths must be completed to solve the puzzle.',
+    body: 'Rotate the gray pipe segments to connect each colored inlet to its matching colored outlet. Colored pipes are already locked in the correct position — only the gray ones need rotating. Tap a gray pipe to rotate it 90°. All paths must be connected to solve the puzzle.',
   },
   compondus: {
     title: 'How to play Compondus',
-    body: "You are shown two words — the top and bottom of a chain. Fill in the missing words so each consecutive pair forms a compound word or phrase. The first letter of each hidden word is revealed as a hint. Wrong guesses reveal the next letter. Lower score is better.",
+    body: "You are shown the first and last word of a chain. Fill in the missing links so each adjacent pair forms a compound word or common phrase. The first letter of each hidden word is shown as a hint. Wrong guesses reveal the next letter and add to your score — aim for zero.",
   },
   loopa: {
     title: 'How to play Loopa',
-    body: "Draw a single closed loop through the dots of the grid. Click the lines between dots to toggle them on or off. Numbers inside squares show exactly how many of that square's four sides must be part of the loop.",
+    body: "Draw a single closed loop through the dots of the grid. Click any line segment between dots to toggle it on or off. Numbers inside squares tell you exactly how many of that square's sides the loop must use. The loop must connect back to itself with no branches or dead ends.",
   },
 }
 
@@ -140,18 +140,32 @@ export default function HomeContent() {
           })}
         </div>
 
-      </div>
+        <div className="w-full flex flex-col gap-3">
+          <Link
+            href="/archive"
+            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-[#eef4fb] hover:bg-[#e4edf7] transition-colors border border-[#cfe0f5]"
+          >
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium text-[#1a1a1a]">Browse past puzzles</span>
+              <span className="text-xs text-[#6a90b8]">Play any archived puzzle</span>
+            </div>
+            <span className="text-[#6a90b8] text-sm">→</span>
+          </Link>
+          <a
+            href="https://buymeacoffee.com/compoundgames"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-[#fdf8e1] hover:bg-[#faf2cc] transition-colors border border-[#f0e68c]"
+          >
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium text-[#1a1a1a]">Support this project</span>
+              <span className="text-xs text-[#a08c30]">Buy me a coffee ☕</span>
+            </div>
+            <span className="text-[#a08c30] text-sm">→</span>
+          </a>
+        </div>
 
-      <footer className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 pt-2 bg-white/90 backdrop-blur-sm border-t border-[#f0f0f0]">
-        <a
-          href="https://buymeacoffee.com/compoundgames"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-[#bbb] hover:text-[#888] transition-colors"
-        >
-          ☕ Support this project
-        </a>
-      </footer>
+      </div>
 
       {tutorialGame && (
         <TutorialModal game={tutorialGame} onClose={() => setTutorialGame(null)} />

@@ -11,7 +11,7 @@ import { useVerba, MAX_COL_HEIGHT, GAME_DURATION, WORD_COLORS, type Grid, type V
 import type { VerbaPuzzle } from '@/lib/puzzles/verba'
 import { LETTER_VALUES } from '@/lib/scoring'
 import { fmtTime } from '@/lib/format'
-import { saveResult, getResult, computeStreak } from '@/lib/localStorage'
+import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
 import styles from './verba.module.css'
 
 function DraggableTile({ tileId, letter, available, selected, onSelect }: {
@@ -88,25 +88,31 @@ export default function VerbaBoard({
   puzzleId,
   puzzleDate,
   puzzleNumber,
+  isArchive = false,
 }: {
   puzzle: VerbaPuzzle
   puzzleId: string | null
   puzzleDate: string
   puzzleNumber: number
+  isArchive?: boolean
 }) {
   const [{ savedResult, alreadyPlayed, streak }] = useState(() => {
-    const result = getResult('verba', puzzleDate)
+    const result = getResult('verba', puzzleDate) ?? (isArchive ? getArchiveResult('verba', puzzleDate) : null)
     return {
       savedResult: result,
       alreadyPlayed: result !== null,
-      streak: result !== null ? computeStreak('verba', puzzleDate) : 0,
+      streak: result !== null && !isArchive ? computeStreak('verba', puzzleDate) : 0,
     }
   })
   const solveSubmitted = useRef(false)
   const storageKey = puzzleId ? `verba-${puzzleId}` : null
 
   const [savedState] = useState<VerbaSavedState | undefined>(() => {
-    if (alreadyPlayed || !storageKey) return undefined
+    if (alreadyPlayed) {
+      const savedGrid = savedResult?.solveData?.grid as string[][] | undefined
+      return savedGrid ? { timeLeft: 0, grid: savedGrid, history: [] } as VerbaSavedState : undefined
+    }
+    if (!storageKey) return undefined
     try {
       const raw = localStorage.getItem(storageKey)
       return raw ? JSON.parse(raw) : undefined
@@ -119,7 +125,7 @@ export default function VerbaBoard({
     grid, bank, history, timeLeft, gameOver,
     detectedWords, totalScore, highlightedCells,
     canPlace, placeTile, removeTopTile, undo,
-  } = useVerba(puzzle, alreadyPlayed ? undefined : savedState)
+  } = useVerba(puzzle, savedState)
 
   const [selectedTileId, setSelectedTileId] = useState<number | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -135,14 +141,20 @@ export default function VerbaBoard({
     if (!gameOver || alreadyPlayed || solveSubmitted.current) return
     solveSubmitted.current = true
     if (storageKey) localStorage.removeItem(storageKey)
-    const share = `Compound Games – Verba #${puzzleNumber}\n📊 ${totalScore} pts\ncompound-games.com`
-    saveResult('verba', puzzleDate, {
+    const WORD_EMOJIS = ['🟡', '🔵', '🟣', '🩵', '🩷', '🟢']
+    const wordLine = detectedWords
+      .map((w, i) => `${WORD_EMOJIS[i % WORD_EMOJIS.length]} +${w.score}`)
+      .join(' · ')
+    const share = `Verba #${puzzleNumber}\n📊 ${totalScore} pts${wordLine ? `\n${wordLine}` : ''}\ncompound-games.com`
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('verba', puzzleDate, {
       time_seconds: null,
       score: totalScore,
       completed_at: new Date().toISOString(),
       share,
+      solveData: { words: detectedWords.map(w => ({ word: w.word, score: w.score })), grid },
     })
-  }, [gameOver, totalScore, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
+  }, [gameOver, totalScore, detectedWords, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
 
   // Persist in-progress state
   useEffect(() => {
@@ -192,7 +204,13 @@ export default function VerbaBoard({
   const displayScore = alreadyPlayed ? (savedResult?.score ?? 0) : totalScore
   const shareText = alreadyPlayed
     ? savedResult?.share
-    : `Compound Games – Verba #${puzzleNumber}\n📊 ${totalScore} pts\ncompound-games.com`
+    : (() => {
+        const WORD_EMOJIS = ['🟡', '🔵', '🟣', '🩵', '🩷', '🟢']
+        const wordLine = detectedWords
+          .map((w, i) => `${WORD_EMOJIS[i % WORD_EMOJIS.length]} +${w.score}`)
+          .join(' · ')
+        return `Verba #${puzzleNumber}\n📊 ${totalScore} pts${wordLine ? `\n${wordLine}` : ''}\ncompound-games.com`
+      })()
 
   const handleShare = () => {
     navigator.clipboard.writeText(shareText ?? '').then(() => {

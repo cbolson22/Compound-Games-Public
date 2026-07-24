@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { fmtTime } from '@/lib/format'
-import { saveResult, getResult, computeStreak } from '@/lib/localStorage'
+import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
 import { useAquarum, getOpenSides, type AquarumPuzzle, type PipeCell } from './useAquarum'
 import styles from './aquarum.module.css'
 
@@ -35,21 +35,24 @@ export default function AquarumBoard({
   puzzleId,
   puzzleDate,
   puzzleNumber,
+  isArchive = false,
 }: {
   puzzle: AquarumPuzzle
   puzzleId: string | null
   puzzleDate: string
   puzzleNumber: number
+  isArchive?: boolean
 }) {
   const [{ savedResult, alreadyPlayed, streak }] = useState(() => {
-    const result = getResult('aquarum', puzzleDate)
+    const result = getResult('aquarum', puzzleDate) ?? (isArchive ? getArchiveResult('aquarum', puzzleDate) : null)
     return {
       savedResult: result,
       alreadyPlayed: result !== null,
-      streak: result !== null ? computeStreak('aquarum', puzzleDate) : 0,
+      streak: result !== null && !isArchive ? computeStreak('aquarum', puzzleDate) : 0,
     }
   })
   const solveSubmitted = useRef(false)
+  const rotateCount = useRef(0)
   const storageKey = puzzleId ? `aquarum-${puzzleId}` : null
 
   const [savedElapsed] = useState(() => {
@@ -58,7 +61,8 @@ export default function AquarumBoard({
   })
 
   const [savedRotations] = useState<number[][] | undefined>(() => {
-    if (alreadyPlayed || !storageKey) return undefined
+    if (alreadyPlayed) return savedResult?.solveData?.finalRotations as number[][] | undefined
+    if (!storageKey) return undefined
     try {
       const raw = localStorage.getItem(storageKey)
       if (!raw) return undefined
@@ -101,12 +105,14 @@ export default function AquarumBoard({
       localStorage.removeItem(storageKey)
       localStorage.removeItem(`${storageKey}-elapsed`)
     }
-    const share = `Compound Games – Aquarum #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
-    saveResult('aquarum', puzzleDate, {
+    const rotationCount = rotateCount.current
+    const share = `Aquarum #${puzzleNumber}\n🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''} · ⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('aquarum', puzzleDate, {
       time_seconds: elapsed,
-      score: null,
       completed_at: new Date().toISOString(),
       share,
+      solveData: { finalRotations: rotations },
     })
   }, [solved, elapsed, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
 
@@ -114,7 +120,10 @@ export default function AquarumBoard({
   const isDone = solved || alreadyPlayed
   const shareText = alreadyPlayed
     ? savedResult?.share
-    : `Compound Games – Aquarum #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+    : (() => {
+        const rotationCount = rotateCount.current
+        return `Aquarum #${puzzleNumber}\n🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''} · ⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+      })()
 
   const handleShare = () => {
     navigator.clipboard.writeText(shareText ?? '').then(() => {
@@ -156,7 +165,7 @@ export default function AquarumBoard({
                   cell.fixed ? styles.fixedCell : '',
                   canClick ? styles.clickable : '',
                 ].filter(Boolean).join(' ')}
-                onClick={canClick ? () => rotateCell(r, c) : undefined}
+                onClick={canClick ? () => { rotateCount.current++; rotateCell(r, c) } : undefined}
               >
                 {cell.type !== 'empty' && (
                   <PipeSvg cell={cell} rotation={rotations[r][c]} color={color} />

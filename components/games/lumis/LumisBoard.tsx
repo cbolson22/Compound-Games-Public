@@ -9,7 +9,7 @@ import {
 } from '@dnd-kit/core'
 import { useLumis, type LumisPuzzle, type CellPos, type PieceData, type PlacedPiece } from './useLumis'
 import { fmtTime } from '@/lib/format'
-import { saveResult, getResult, computeStreak } from '@/lib/localStorage'
+import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
 import styles from './lumis.module.css'
 
 const PIECE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#f43f5e', '#14b8a6']
@@ -105,25 +105,33 @@ export default function LumisBoard({
   puzzleId,
   puzzleDate,
   puzzleNumber,
+  isArchive = false,
 }: {
   puzzle: LumisPuzzle
   puzzleId: string | null
   puzzleDate: string
   puzzleNumber: number
+  isArchive?: boolean
 }) {
   const [{ savedResult, alreadyPlayed, streak }] = useState(() => {
-    const result = getResult('lumis', puzzleDate)
+    const result = getResult('lumis', puzzleDate) ?? (isArchive ? getArchiveResult('lumis', puzzleDate) : null)
     return {
       savedResult: result,
       alreadyPlayed: result !== null,
-      streak: result !== null ? computeStreak('lumis', puzzleDate) : 0,
+      streak: result !== null && !isArchive ? computeStreak('lumis', puzzleDate) : 0,
     }
   })
   const solveSubmitted = useRef(false)
+  const firstColors = useRef<string[]>([])
+  const resetCount = useRef(0)
+  const computedShare = useRef('')
   const storageKey = puzzleId ? `lumis-${puzzleId}` : `lumis-${puzzleDate}`
 
   const [{ initialElapsed, initialPlaced }] = useState(() => {
-    if (alreadyPlayed) return { initialElapsed: 0, initialPlaced: undefined as PlacedPiece[] | undefined }
+    if (alreadyPlayed) return {
+      initialElapsed: 0,
+      initialPlaced: savedResult?.solveData?.placed as PlacedPiece[] | undefined,
+    }
     try {
       const raw = localStorage.getItem(storageKey)
       if (!raw) return { initialElapsed: 0, initialPlaced: undefined }
@@ -157,14 +165,26 @@ export default function LumisBoard({
     if (!solved || alreadyPlayed || solveSubmitted.current) return
     solveSubmitted.current = true
     localStorage.removeItem(storageKey)
-    const share = `Compound Games – Lumis #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
-    saveResult('lumis', puzzleDate, {
+    const PIECE_EMOJIS = ['🟡', '🔵', '🟢', '🟣', '🔴', '🩵']
+    const colorEmojis = firstColors.current
+      .slice(0, 3)
+      .map(pid => {
+        const idx = puzzle.pieces.findIndex(p => p.id === pid)
+        return PIECE_EMOJIS[idx % PIECE_EMOJIS.length]
+      })
+      .join(' ')
+    const resets = resetCount.current
+    const resetStr = resets > 0 ? ` · ${resets} reset${resets !== 1 ? 's' : ''}` : ''
+    const share = `Lumis #${puzzleNumber}\n${colorEmojis}${resetStr}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+    computedShare.current = share
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('lumis', puzzleDate, {
       time_seconds: elapsed,
-      score: null,
       completed_at: new Date().toISOString(),
       share,
+      solveData: { placed },
     })
-  }, [solved, elapsed, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
+  }, [solved, elapsed, puzzleDate, puzzleNumber, puzzle.pieces, storageKey, alreadyPlayed])
 
   const [activeId, setActiveId] = useState<string | null>(null)
   const [hoveredCell, setHoveredCell] = useState<[number, number] | null>(null)
@@ -199,6 +219,14 @@ export default function LumisBoard({
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
   )
 
+  const trackPlace = useCallback((pieceId: string, r: number, c: number): boolean => {
+    const success = placePiece(pieceId, r, c)
+    if (success && firstColors.current.length < 3) {
+      firstColors.current = [...firstColors.current, pieceId]
+    }
+    return success
+  }, [placePiece])
+
   const handleTapSelect = useCallback((pieceId: string) => {
     setSelectedPieceId(prev => prev === pieceId ? null : pieceId)
     onPickup()
@@ -206,9 +234,9 @@ export default function LumisBoard({
 
   const handleTapPlace = useCallback((r: number, c: number) => {
     if (!selectedPieceId) return
-    const success = placePiece(selectedPieceId, r, c)
+    const success = trackPlace(selectedPieceId, r, c)
     if (success) setSelectedPieceId(null)
-  }, [selectedPieceId, placePiece])
+  }, [selectedPieceId, trackPlace])
 
   const handleDragStart = useCallback(({ active }: DragStartEvent) => {
     setActiveId(active.id as string)
@@ -235,19 +263,19 @@ export default function LumisBoard({
     if (!overId.startsWith('cell-')) return
     const pieceId = (active.id as string).slice(6)
     const parts = overId.split('-')
-    placePiece(pieceId, parseInt(parts[1]), parseInt(parts[2]))
-  }, [placePiece])
+    trackPlace(pieceId, parseInt(parts[1]), parseInt(parts[2]))
+  }, [trackPlace])
 
   const handleReset = useCallback(() => {
     setSelectedPieceId(null)
+    resetCount.current++
+    firstColors.current = []
     reset()
   }, [reset])
 
   const displayTime = alreadyPlayed ? (savedResult?.time_seconds ?? 0) : elapsed
   const isDone = solved || alreadyPlayed
-  const shareText = alreadyPlayed
-    ? savedResult?.share
-    : `Compound Games – Lumis #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+  const shareText = alreadyPlayed ? savedResult?.share : computedShare.current
 
   const handleShare = () => {
     navigator.clipboard.writeText(shareText ?? '').then(() => {

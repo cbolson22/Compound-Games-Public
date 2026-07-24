@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { fmtTime } from "@/lib/format";
-import { saveResult, getResult, computeStreak } from "@/lib/localStorage";
+import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from "@/lib/localStorage";
 import {
   DndContext,
   DragOverlay,
@@ -116,24 +116,31 @@ export default function NumerisBoard({
   puzzleId,
   puzzleDate,
   puzzleNumber,
+  isArchive = false,
 }: {
   puzzle: Puzzle;
   puzzleId: string | null;
   puzzleDate: string;
   puzzleNumber: number;
+  isArchive?: boolean;
 }) {
   const [{ savedResult, alreadyPlayed, streak }] = useState(() => {
-    const result = getResult("numeris", puzzleDate)
+    const result = getResult("numeris", puzzleDate) ?? (isArchive ? getArchiveResult("numeris", puzzleDate) : null)
     return {
       savedResult: result,
       alreadyPlayed: result !== null,
-      streak: result !== null ? computeStreak("numeris", puzzleDate) : 0,
+      streak: result !== null && !isArchive ? computeStreak("numeris", puzzleDate) : 0,
     }
   })
   const solveSubmitted = useRef(false);
+  const moveCount = useRef(0);
 
   const [{ savedElapsed, savedSlots }] = useState(() => {
-    if (alreadyPlayed || !puzzleId)
+    if (alreadyPlayed) {
+      const slots = savedResult?.solveData?.slots as (string | null)[] | undefined
+      return { savedElapsed: 0, savedSlots: slots }
+    }
+    if (!puzzleId)
       return { savedElapsed: 0, savedSlots: undefined as (string | null)[] | undefined };
     try {
       const raw = localStorage.getItem(`numeris-${puzzleId}`);
@@ -173,6 +180,16 @@ export default function NumerisBoard({
 
   const [copied, setCopied] = useState(false);
 
+  const handleReturnSlot = useCallback((si: number) => {
+    moveCount.current++;
+    returnSlot(si);
+  }, [returnSlot]);
+
+  const handleSwapSlots = useCallback((from: number, to: number) => {
+    moveCount.current++;
+    swapSlots(from, to);
+  }, [swapSlots]);
+
   // Persist in-progress state
   useEffect(() => {
     if (!puzzleId || alreadyPlayed) return;
@@ -187,12 +204,14 @@ export default function NumerisBoard({
     if (!solved || alreadyPlayed || solveSubmitted.current) return;
     solveSubmitted.current = true;
     if (puzzleId) localStorage.removeItem(`numeris-${puzzleId}`);
-    const share = `Compound Games – Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`;
-    saveResult("numeris", puzzleDate, {
+    const moves = moveCount.current;
+    const share = `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} change${moves !== 1 ? 's' : ''}\ncompound-games.com`;
+    const saveFn = isArchive ? saveArchiveResult : saveResult;
+    saveFn("numeris", puzzleDate, {
       time_seconds: elapsed,
-      score: null,
       completed_at: new Date().toISOString(),
       share,
+      solveData: { slots: slotContents },
     });
   }, [solved, elapsed, puzzleDate, puzzleNumber, puzzleId, alreadyPlayed]);
 
@@ -224,9 +243,9 @@ export default function NumerisBoard({
         const fromSlot = parseInt(aid.slice(5));
         if (oid.startsWith("slot-")) {
           const toSlot = parseInt(oid.slice(5));
-          if (fromSlot !== toSlot) swapSlots(fromSlot, toSlot);
+          if (fromSlot !== toSlot) handleSwapSlots(fromSlot, toSlot);
         } else if (oid === "tray") {
-          returnSlot(fromSlot);
+          handleReturnSlot(fromSlot);
         }
       }
     },
@@ -270,7 +289,10 @@ export default function NumerisBoard({
   const isDone = solved || alreadyPlayed;
   const shareText = alreadyPlayed
     ? savedResult?.share
-    : `Compound Games – Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`;
+    : (() => {
+        const moves = moveCount.current;
+        return `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} change${moves !== 1 ? 's' : ''}\ncompound-games.com`;
+      })();
 
   const handleShare = () => {
     navigator.clipboard.writeText(shareText ?? "").then(() => {
@@ -313,7 +335,7 @@ export default function NumerisBoard({
                 slotIndex={si}
                 val={val}
                 solved={isDone}
-                onReturn={() => returnSlot(si)}
+                onReturn={() => handleReturnSlot(si)}
               />
             ))}
           </div>
