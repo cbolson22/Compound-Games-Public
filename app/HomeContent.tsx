@@ -95,7 +95,7 @@ export default function HomeContent() {
         <div className="flex flex-col items-center gap-1">
           <h1 className="font-serif text-5xl text-center">Compound Games</h1>
           <p className="text-sm text-[#aaa] text-center pt-1">
-            Six daily puzzles · resets at midnight
+            Six daily puzzles · resets at midnight CT
           </p>
           {today && (
             <p className="text-[0.65rem] text-[#c5bcbc] uppercase tracking-widest mt-1">
@@ -146,7 +146,7 @@ export default function HomeContent() {
             className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-[#eef4fb] hover:bg-[#e4edf7] transition-colors border border-[#cfe0f5]"
           >
             <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-[#1a1a1a]">Browse past puzzles</span>
+              <span className="text-sm font-medium text-[#1a1a1a]">🧩 Browse past puzzles</span>
               <span className="text-xs text-[#6a90b8]">Play any archived puzzle</span>
             </div>
             <span className="text-[#6a90b8] text-sm">→</span>
@@ -155,13 +155,13 @@ export default function HomeContent() {
             href="https://buymeacoffee.com/compoundgames"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-[#fdf8e1] hover:bg-[#faf2cc] transition-colors border border-[#f0e68c]"
+            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-[#f0faf4] hover:bg-[#e6f5ec] transition-colors border border-[#c3e6d0]"
           >
             <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-[#1a1a1a]">Support this project</span>
-              <span className="text-xs text-[#a08c30]">Buy me a coffee ☕</span>
+              <span className="text-sm font-medium text-[#1a1a1a]">☕ Support this project</span>
+              <span className="text-xs text-[#5a9e72]">Any support is appreciated!</span>
             </div>
-            <span className="text-[#a08c30] text-sm">→</span>
+            <span className="text-[#5a9e72] text-sm">→</span>
           </a>
         </div>
 

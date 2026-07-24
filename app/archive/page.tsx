@@ -1,5 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import { getTodaysCT } from '@/lib/dates'
+import ArchiveIndexClient from './ArchiveIndexClient'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Archive — Compound Games',
@@ -14,7 +19,20 @@ const GAMES = [
   { key: 'loopa', name: 'Loopa', desc: 'Daily Loop Puzzle' },
 ] as const
 
-export default function ArchivePage() {
+export default async function ArchivePage() {
+  const today = getTodaysCT()
+  const { data } = await supabase
+    .from('daily_puzzles')
+    .select('game, puzzle_date')
+    .lt('puzzle_date', today)
+
+  const gameDates: Record<string, string[]> = {}
+  for (const row of data ?? []) {
+    const g = row.game as string
+    if (!gameDates[g]) gameDates[g] = []
+    gameDates[g].push(row.puzzle_date as string)
+  }
+
   return (
     <main className="min-h-screen flex flex-col items-center p-6 pb-16">
       <div className="w-full max-w-sm md:max-w-2xl flex flex-col gap-8 mt-8">
@@ -28,21 +46,7 @@ export default function ArchivePage() {
           <p className="text-sm text-[#aaa] text-center">Browse past puzzles by game</p>
         </div>
 
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
-          {GAMES.map(g => (
-            <Link
-              key={g.key}
-              href={`/archive/${g.key}`}
-              className="flex items-center gap-3 px-6 py-6 border border-[#f0f0f0] rounded-2xl hover:border-[#ddd] transition-colors bg-white"
-            >
-              <div className="flex-1">
-                <div className="font-serif text-2xl">{g.name}</div>
-                <div className="text-sm text-[#aaa]">{g.desc}</div>
-              </div>
-              <span className="text-[#bbb] text-sm">→</span>
-            </Link>
-          ))}
-        </div>
+        <ArchiveIndexClient games={GAMES} gameDates={gameDates} />
       </div>
     </main>
   )
