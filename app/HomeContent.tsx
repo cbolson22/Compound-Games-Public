@@ -91,42 +91,46 @@ export default function HomeContent() {
 
   return (
     <main className="min-h-screen flex flex-col items-center p-6 pb-16">
-      <div className="w-full max-w-sm flex flex-col items-center gap-8 mt-8">
+      <div className="w-full max-w-sm md:max-w-2xl flex flex-col items-center gap-8 mt-8">
         <div className="flex flex-col items-center gap-1">
-          <h1 className="font-serif text-5xl">Compound Games</h1>
-          <p className="text-sm text-[#aaa] text-center">
+          <h1 className="font-serif text-5xl text-center">Compound Games</h1>
+          <p className="text-sm text-[#aaa] text-center pt-1">
             Six daily puzzles · resets at midnight
           </p>
+          {today && (
+            <p className="text-[0.65rem] text-[#c5bcbc] uppercase tracking-widest mt-1">
+              {new Date(today + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+          )}
         </div>
 
-        <div className="w-full flex flex-col gap-3">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
           {GAMES.map(g => {
             const done = played[g.key] ?? false
             const streak = streaks[g.key] ?? 0
             return (
-              <div key={g.key} className="flex items-center gap-2">
-                <Link
-                  href={g.href}
-                  className="flex-1 flex items-center gap-3 px-5 py-4 border border-[#f0f0f0] rounded-2xl hover:border-[#ddd] transition-colors bg-white"
-                >
-                  <div className="flex-1">
-                    <div className="font-serif text-xl">{g.name}</div>
-                    <div className="text-xs text-[#aaa]">{g.desc}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {streak > 0 && (
-                      <span className="text-xs text-[#f59e0b] font-medium">{streak}🔥</span>
-                    )}
-                    {done ? (
-                      <span className="text-xs font-medium text-[#059669] bg-[#d1fae5] px-2 py-0.5 rounded-full">✓ Done</span>
-                    ) : (
-                      <span className="text-xs font-medium text-[#aaa] bg-[#f5f5f5] px-2 py-0.5 rounded-full">Play</span>
-                    )}
-                  </div>
-                </Link>
+              <div
+                key={g.key}
+                className="relative flex items-center gap-3 px-6 py-6 border border-[#f0f0f0] rounded-2xl hover:border-[#ddd] transition-colors bg-white"
+              >
+                <Link href={g.href} className="absolute inset-0 rounded-2xl" aria-label={g.name} />
+                <div className="flex-1 select-none">
+                  <div className="font-serif text-2xl">{g.name}</div>
+                  <div className="text-sm text-[#aaa]">{g.desc}</div>
+                </div>
+                <div className="flex items-center gap-2 select-none">
+                  {streak > 0 && (
+                    <span className="text-xs text-[#f59e0b] font-medium">{streak}🔥</span>
+                  )}
+                  {done ? (
+                    <span className="text-xs font-medium text-[#059669] bg-[#d1fae5] px-2 py-0.5 rounded-full">✓ Done</span>
+                  ) : (
+                    <span className="text-xs font-medium text-[#aaa] bg-[#f5f5f5] px-2 py-0.5 rounded-full">Play</span>
+                  )}
+                </div>
                 <button
                   onClick={() => setTutorialGame(g.key)}
-                  className="w-8 h-8 shrink-0 rounded-full border border-[#e8e8e8] text-[#bbb] text-sm hover:border-[#bbb] hover:text-[#555] transition-colors flex items-center justify-center"
+                  className="relative z-10 w-7 h-7 shrink-0 rounded-full border border-[#e8e8e8] text-[#ccc] text-xs hover:border-[#bbb] hover:text-[#555] transition-colors flex items-center justify-center"
                   aria-label={`How to play ${g.name}`}
                 >
                   ?
@@ -136,16 +140,11 @@ export default function HomeContent() {
           })}
         </div>
 
-        {today && (
-          <p className="text-[0.65rem] text-[#ddd] uppercase tracking-widest">
-            {new Date(today + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </p>
-        )}
       </div>
 
       <footer className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 pt-2 bg-white/90 backdrop-blur-sm border-t border-[#f0f0f0]">
         <a
-          href="https://buymeacoffee.com"
+          href="https://buymeacoffee.com/compoundgames"
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-[#bbb] hover:text-[#888] transition-colors"
