@@ -1,0 +1,375 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.mainLayout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0;
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 340px;
+}
+
+.title {
+  font-family: var(--font-dm-serif), serif;
+  font-size: 42px;
+  color: #1a1a1a;
+  margin-bottom: 0.15rem;
+}
+
+.sub {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 1.6rem;
+}
+
+.statsRow {
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
+  margin-bottom: 1.6rem;
+}
+
+.statBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statLbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.timer {
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 36px;
+  font-weight: 500;
+  color: #1a1a1a;
+  letter-spacing: 2px;
+  transition: color 0.3s;
+}
+
+.timerLow { color: #ef4444; }
+
+.scoreDisplay {
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 36px;
+  font-weight: 500;
+  color: #1a1a1a;
+  letter-spacing: 2px;
+}
+
+.grid {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 0.8rem;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 4px;
+  transition: background 0.15s;
+}
+
+.columnOver {
+  background: #f0fdf4;
+}
+
+.cell {
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a1a1a;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s, color 0.12s;
+  user-select: none;
+  position: relative;
+}
+
+.cellFilled {
+  background: #fafafa;
+  border-color: #d0d0d0;
+}
+
+.hint {
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+  max-width: 260px;
+  min-height: 32px;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.bankWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 340px;
+  margin-bottom: 0.8rem;
+}
+
+.bankLbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 16px;
+  background: #fafafa;
+  width: 100%;
+  min-height: 64px;
+}
+
+.bankTile {
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  cursor: grab;
+  touch-action: none;
+  transition: border-color 0.15s, transform 0.1s, box-shadow 0.1s;
+  user-select: none;
+  position: relative;
+}
+
+.tileValue {
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--font-dm-mono), monospace;
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.bankTile:hover {
+  border-color: #bbb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.bankTile:active { cursor: grabbing; }
+
+.bankTileSelected {
+  border-color: #1a1a1a;
+  background: #f0f0f0;
+  box-shadow: 0 0 0 2px #1a1a1a;
+  transform: translateY(-2px);
+}
+
+.bankTileUsed {
+  background: #f5f5f5;
+  border-color: #e8e8e8;
+  color: #ccc;
+  cursor: default;
+  pointer-events: none;
+}
+
+.undoBtn {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 20px;
+  border-radius: 100px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-outfit), sans-serif;
+  margin-bottom: 1.4rem;
+}
+
+.undoBtn:hover {
+  border-color: #aaa;
+  color: #1a1a1a;
+}
+
+.wordList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 340px;
+  margin-bottom: 1rem;
+}
+
+.wordListLbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  padding: 10px 14px;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  background: #fafafa;
+  width: 100%;
+  min-height: 44px;
+}
+
+.wordChip {
+  font-size: 13px;
+  font-family: var(--font-dm-mono), monospace;
+  color: #333;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.wordScore {
+  font-size: 11px;
+  color: #10b981;
+  font-weight: 700;
+}
+
+.solvedBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 0;
+  animation: fadeUp 0.4s ease;
+}
+
+.solvedTxt {
+  font-family: var(--font-dm-serif), serif;
+  font-size: 28px;
+  color: #1d9e75;
+}
+
+.solvedPts {
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 48px;
+  font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: 3px;
+  line-height: 1;
+}
+
+.solvedPtsLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+}
+
+.solvedSub {
+  font-size: 13px;
+  color: #aaa;
+  font-family: var(--font-dm-mono), monospace;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 720px) {
+  .board {
+    padding: 1.5rem 2.5rem 2rem;
+  }
+
+  .mainLayout {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .rightCol {
+    align-items: center;
+    width: 300px;
+    max-width: none;
+    flex-shrink: 0;
+  }
+
+  .bankWrap {
+    max-width: none;
+    width: 100%;
+  }
+
+  .wordList {
+    max-width: none;
+    width: 100%;
+  }
+
+  .hint {
+    text-align: center;
+    max-width: none;
+  }
+
+  .grid {
+    margin-bottom: 0;
+  }
+}

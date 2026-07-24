@@ -1,0 +1,177 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 3rem;
+}
+
+.title {
+  font-family: var(--font-dm-serif), serif;
+  font-size: 42px;
+  color: #1a1a1a;
+  margin-bottom: 0.15rem;
+}
+
+.sub {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 1.6rem;
+}
+
+.timerWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.6rem;
+}
+
+.timerLbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.timer {
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 36px;
+  font-weight: 500;
+  color: #1a1a1a;
+  letter-spacing: 2px;
+  transition: color 0.3s;
+}
+
+.timerSolved { color: #1d9e75; }
+
+/* ── Grid ─────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 44px);
+  grid-template-rows: repeat(7, 44px);
+  gap: 4px;
+  margin-bottom: 1.4rem;
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 14px;
+}
+
+.cell {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  transition: transform 0.1s;
+}
+
+.pipedCell {
+  background: #f1f5f9;
+}
+
+.fixedCell {
+  background: #e2e8f0;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background: #dde3ea;
+  transform: scale(1.06);
+}
+
+/* ── Below grid ───────────────────────────────────────────── */
+
+.hint {
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+  max-width: 300px;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.resetBtn {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 24px;
+  border-radius: 100px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-outfit), sans-serif;
+  margin-top: 0.5rem;
+}
+
+.resetBtn:hover {
+  border-color: #aaa;
+  color: #1a1a1a;
+}
+
+.solvedBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 1rem;
+  animation: fadeUp 0.4s ease;
+}
+
+.solvedTxt {
+  font-family: var(--font-dm-serif), serif;
+  font-size: 28px;
+  color: #1d9e75;
+}
+
+.solvedSub {
+  font-size: 13px;
+  color: #aaa;
+  font-family: var(--font-dm-mono), monospace;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile ───────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .board {
+    padding: 1rem 0.5rem 1.5rem;
+  }
+
+  .sub {
+    margin-bottom: 0.8rem;
+  }
+
+  .timerWrap {
+    margin-bottom: 0.8rem;
+  }
+
+  .timer {
+    font-size: 28px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(7, 38px);
+    grid-template-rows: repeat(7, 38px);
+    gap: 3px;
+    padding: 6px;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+  }
+
+  .cell {
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+  }
+}

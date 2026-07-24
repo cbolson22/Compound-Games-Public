@@ -1,0 +1,284 @@
+.nr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 3rem;
+  min-height: 580px;
+}
+
+.gTitle {
+  font-family: var(--font-dm-serif), serif;
+  font-size: 42px;
+  color: #1a1a1a;
+  margin-bottom: 0.15rem;
+}
+
+.gSub {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 1.6rem;
+}
+
+.timerWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.6rem;
+}
+
+.timerLbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.timer {
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 36px;
+  font-weight: 500;
+  color: #1a1a1a;
+  letter-spacing: 2px;
+  transition: color 0.3s;
+}
+
+.timer.solved { color: #1d9e75; }
+
+.targetWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.8rem;
+}
+
+.targetLbl {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #ccc;
+  font-weight: 500;
+}
+
+.targetNum {
+  font-family: var(--font-dm-serif), serif;
+  font-size: 52px;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.eqArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2rem;
+  min-height: 76px;
+  padding: 0 0.5rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* On desktop both divs are invisible to the flex layout — slots and = result flow in one row */
+.slotsRow  { display: contents; }
+.eqSuffix  { display: contents; }
+
+.slot {
+  width: 52px;
+  height: 58px;
+  border: 1.5px dashed #ddd;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 22px;
+  font-weight: 500;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  background: #fff;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.slot:hover { border-color: #aaa; background: #fafafa; }
+.slot.dragOver { border-color: #378add; background: #e6f1fb; }
+
+.slot.filled {
+  border-style: solid;
+  border-color: #e0e0e0;
+  background: #fafafa;
+  cursor: grab;
+}
+
+.slot.filled.symFilled {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
+}
+
+.slot.filled:hover { border-color: #e24b4a; background: #fcebeb; color: #1a1a1a; }
+.slot.filled.symFilled:hover { border-color: #e24b4a; background: #fcebeb; color: #e24b4a; }
+.slot.slotDragging { opacity: 0.35; }
+
+.rx {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 9px;
+  color: #e24b4a;
+  opacity: 0;
+  transition: opacity 0.1s;
+  pointer-events: none;
+  font-weight: 600;
+}
+
+.slot.filled:hover .rx { opacity: 1; }
+
+.eqSep {
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 24px;
+  color: #ccc;
+}
+
+.resultBox {
+  min-width: 60px;
+  height: 58px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid #e0e0e0;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 20px;
+  color: #ccc;
+  transition: all 0.2s;
+}
+
+.resultBox.match { color: #1d9e75; border-color: #9fe1cb; background: #e1f5ee; }
+.resultBox.nomatch { color: #e24b4a; border-color: #f7c1c1; background: #fcebeb; }
+
+.tilesLbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.tray {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 1.2rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  background: #fafafa;
+  min-height: 84px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.tray.dragOver { border-color: #378add; background: #f0f7ff; }
+
+.tile {
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 22px;
+  font-weight: 500;
+  cursor: grab;
+  transition: transform 0.1s, box-shadow 0.1s, opacity 0.15s;
+  border: 1.5px solid #e8e8e8;
+  background: #fff;
+  color: #1a1a1a;
+  flex-shrink: 0;
+}
+
+.tile:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.tile.sym { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.tile.dragging { opacity: 0.35; transform: none; box-shadow: none; }
+.tile.used { opacity: 0.18; pointer-events: none; }
+.tile.overlay { cursor: grabbing; box-shadow: 0 8px 24px rgba(0,0,0,0.15); transform: none; }
+
+.controls { display: flex; gap: 10px; margin-top: 1.5rem; }
+
+.btn {
+  padding: 10px 24px;
+  border-radius: 100px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn:hover { border-color: #aaa; color: #1a1a1a; }
+
+.solvedBanner {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 1rem;
+  animation: fiu 0.4s ease;
+}
+
+.solvedBanner.show { display: flex; }
+.solvedTxt { font-family: var(--font-dm-serif), serif; font-size: 28px; color: #1d9e75; }
+.solvedSub { font-size: 13px; color: #aaa; }
+
+@keyframes fiu {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+  .eqArea {
+    flex-direction: column;
+    min-height: auto;
+    padding: 0;
+    gap: 10px;
+  }
+
+  .slotsRow {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+  }
+
+  .eqSuffix {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Slots grow to fill the row evenly regardless of count (up to 8) */
+  .slot {
+    flex: 1;
+    min-width: 0;
+    height: 50px;
+    font-size: 18px;
+    border-radius: 10px;
+  }
+}

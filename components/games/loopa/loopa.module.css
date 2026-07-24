@@ -1,0 +1,129 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1rem 2.5rem;
+}
+
+.title {
+  font-family: var(--font-dm-serif), serif;
+  font-size: 42px;
+  color: #1a1a1a;
+  margin-bottom: 0.15rem;
+  text-align: center;
+}
+
+.sub {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 1.2rem;
+  text-align: center;
+}
+
+.timerWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.timerLbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.timer {
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 36px;
+  font-weight: 500;
+  color: #1a1a1a;
+  letter-spacing: 2px;
+  transition: color 0.3s;
+}
+
+.timerSolved { color: #1d9e75; }
+
+.gridLayout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  justify-content: center;
+}
+
+.resetBtn {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 24px;
+  border-radius: 100px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-outfit), sans-serif;
+  margin-top: 0.5rem;
+}
+
+.resetBtn:hover {
+  border-color: #aaa;
+  color: #1a1a1a;
+}
+
+.solvedBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  animation: fadeUp 0.4s ease;
+}
+
+.solvedTxt {
+  font-family: var(--font-dm-serif), serif;
+  font-size: 28px;
+  color: #1d9e75;
+}
+
+.solvedSub {
+  font-size: 13px;
+  color: #aaa;
+  font-family: var(--font-dm-mono), monospace;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+  .board {
+    padding: 0.5rem 0.5rem 1.5rem;
+  }
+
+  .title {
+    font-size: 36px;
+  }
+
+  .timerWrap {
+    margin-bottom: 0.6rem;
+  }
+
+  .timer {
+    font-size: 28px;
+  }
+}
+
+@media (min-width: 720px) {
+  .gridLayout {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .solvedBanner {
+    min-width: 180px;
+  }
+}
