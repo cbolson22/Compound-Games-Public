@@ -105,14 +105,13 @@ export default function VerbaBoard({
     }
   })
   const solveSubmitted = useRef(false)
-  const storageKey = puzzleId ? `verba-${puzzleId}` : null
+  const storageKey = `verba-inprog-${puzzleDate}`
 
   const [savedState] = useState<VerbaSavedState | undefined>(() => {
     if (alreadyPlayed) {
       const savedGrid = savedResult?.solveData?.grid as string[][] | undefined
       return savedGrid ? { timeLeft: 0, grid: savedGrid, history: [] } as VerbaSavedState : undefined
     }
-    if (!storageKey) return undefined
     try {
       const raw = localStorage.getItem(storageKey)
       return raw ? JSON.parse(raw) : undefined
@@ -140,7 +139,7 @@ export default function VerbaBoard({
   useEffect(() => {
     if (!gameOver || alreadyPlayed || solveSubmitted.current) return
     solveSubmitted.current = true
-    if (storageKey) localStorage.removeItem(storageKey)
+    localStorage.removeItem(storageKey)
     const WORD_EMOJIS = ['🟡', '🔵', '🟣', '🩵', '🩷', '🟢']
     const wordLine = detectedWords
       .map((w, i) => `${WORD_EMOJIS[i % WORD_EMOJIS.length]} +${w.score}`)
@@ -158,7 +157,7 @@ export default function VerbaBoard({
 
   // Persist in-progress state
   useEffect(() => {
-    if (!storageKey || alreadyPlayed) return
+    if (alreadyPlayed) return
     if (gameOver) { localStorage.removeItem(storageKey); return }
     localStorage.setItem(storageKey, JSON.stringify({ timeLeft, grid, history } as VerbaSavedState))
   }, [storageKey, timeLeft, grid, history, gameOver, alreadyPlayed])

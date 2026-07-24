@@ -85,10 +85,10 @@ export default function CompondusBoard({
   const [copied, setCopied] = useState(false)
 
   const hiddenInputRef = useRef<HTMLInputElement>(null)
-  const storageKey = puzzleId ? `compondus-${puzzleId}` : null
+  const storageKey = `compondus-inprog-${puzzleDate}`
 
   const [savedState] = useState<CompondusSavedState | undefined>(() => {
-    if (alreadyPlayed || !storageKey) return undefined
+    if (alreadyPlayed) return undefined
     try {
       const raw = localStorage.getItem(storageKey)
       return raw ? JSON.parse(raw) : undefined
@@ -142,7 +142,7 @@ export default function CompondusBoard({
   useEffect(() => {
     if (!solved || alreadyPlayed || solveSubmitted.current) return
     solveSubmitted.current = true
-    if (storageKey) localStorage.removeItem(storageKey)
+    localStorage.removeItem(storageKey)
     const timeTaken = Math.floor((Date.now() - startTimeRef.current) / 1000)
     const NUM_EMOJIS = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣']
     const slotEmojis = perSlotWrong.current.map(wrong => {
@@ -162,12 +162,12 @@ export default function CompondusBoard({
   }, [solved, wrongCount, revealedCounts, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
 
   useEffect(() => {
-    if (!storageKey || alreadyPlayed || solved) return
+    if (alreadyPlayed || solved) return
     localStorage.setItem(storageKey, JSON.stringify({ wrongCount, currentSlot, solvedMask, revealedCounts }))
   }, [storageKey, wrongCount, currentSlot, solvedMask, revealedCounts, solved, alreadyPlayed])
 
   useEffect(() => {
-    if ((solved || alreadyPlayed) && storageKey) localStorage.removeItem(storageKey)
+    if (solved || alreadyPlayed) localStorage.removeItem(storageKey)
   }, [solved, alreadyPlayed, storageKey])
 
   const played = solved || alreadyPlayed

@@ -48,23 +48,20 @@ export default function LoopaBoard({
     }
   })
   const solveSubmitted = useRef(false)
-  const storageKey = puzzleId ? `loopa-${puzzleId}` : null
+  const storageKey = `loopa-inprog-${puzzleDate}`
 
-  const [savedElapsed] = useState(() => {
-    if (alreadyPlayed || !storageKey) return 0
-    return parseInt(localStorage.getItem(`${storageKey}-elapsed`) || '0', 10)
-  })
-
-  const [savedEdges] = useState<string[] | undefined>(() => {
-    if (alreadyPlayed) return savedResult?.solveData?.edges as string[] | undefined
-    if (!storageKey) return undefined
+  const [{ savedElapsed, savedEdges }] = useState(() => {
+    if (alreadyPlayed) return {
+      savedElapsed: 0,
+      savedEdges: savedResult?.solveData?.edges as string[] | undefined,
+    }
     try {
       const raw = localStorage.getItem(storageKey)
-      if (!raw) return undefined
-      const parsed = JSON.parse(raw) as string[]
-      if (!Array.isArray(parsed)) { localStorage.removeItem(storageKey); return undefined }
-      return parsed
-    } catch { return undefined }
+      if (!raw) return { savedElapsed: 0, savedEdges: undefined }
+      const parsed = JSON.parse(raw) as { elapsed: number; edges: string[] }
+      const edges = Array.isArray(parsed.edges) ? parsed.edges : undefined
+      return { savedElapsed: parsed.elapsed ?? 0, savedEdges: edges }
+    } catch { return { savedElapsed: 0, savedEdges: undefined } }
   })
 
   const [copied, setCopied] = useState(false)
@@ -85,22 +82,14 @@ export default function LoopaBoard({
   })
 
   useEffect(() => {
-    if (!storageKey || alreadyPlayed || solved) return
-    localStorage.setItem(`${storageKey}-elapsed`, String(elapsed))
-  }, [elapsed, storageKey, alreadyPlayed, solved])
-
-  useEffect(() => {
-    if (!storageKey || alreadyPlayed || solved) return
-    localStorage.setItem(storageKey, JSON.stringify([...edges]))
-  }, [edges, storageKey, alreadyPlayed, solved])
+    if (alreadyPlayed || solved) return
+    localStorage.setItem(storageKey, JSON.stringify({ elapsed, edges: [...edges] }))
+  }, [elapsed, edges, storageKey, alreadyPlayed, solved])
 
   useEffect(() => {
     if (!solved || alreadyPlayed || solveSubmitted.current) return
     solveSubmitted.current = true
-    if (storageKey) {
-      localStorage.removeItem(storageKey)
-      localStorage.removeItem(`${storageKey}-elapsed`)
-    }
+    localStorage.removeItem(storageKey)
     const share = `Loopa #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
     const saveFn = isArchive ? saveArchiveResult : saveResult
     saveFn('loopa', puzzleDate, {

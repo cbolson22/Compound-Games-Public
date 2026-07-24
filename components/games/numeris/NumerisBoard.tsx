@@ -140,10 +140,8 @@ export default function NumerisBoard({
       const slots = savedResult?.solveData?.slots as (string | null)[] | undefined
       return { savedElapsed: 0, savedSlots: slots }
     }
-    if (!puzzleId)
-      return { savedElapsed: 0, savedSlots: undefined as (string | null)[] | undefined };
     try {
-      const raw = localStorage.getItem(`numeris-${puzzleId}`);
+      const raw = localStorage.getItem(`numeris-inprog-${puzzleDate}`);
       if (!raw) return { savedElapsed: 0, savedSlots: undefined };
       const parsed = JSON.parse(raw);
       if (typeof parsed === "object" && parsed !== null) {
@@ -192,18 +190,18 @@ export default function NumerisBoard({
 
   // Persist in-progress state
   useEffect(() => {
-    if (!puzzleId || alreadyPlayed) return;
+    if (alreadyPlayed) return;
     localStorage.setItem(
-      `numeris-${puzzleId}`,
+      `numeris-inprog-${puzzleDate}`,
       JSON.stringify({ elapsed, slots: slotContents }),
     );
-  }, [elapsed, slotContents, puzzleId, alreadyPlayed]);
+  }, [elapsed, slotContents, puzzleDate, alreadyPlayed]);
 
   // Save result on solve
   useEffect(() => {
     if (!solved || alreadyPlayed || solveSubmitted.current) return;
     solveSubmitted.current = true;
-    if (puzzleId) localStorage.removeItem(`numeris-${puzzleId}`);
+    localStorage.removeItem(`numeris-inprog-${puzzleDate}`);
     const moves = moveCount.current;
     const share = `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} change${moves !== 1 ? 's' : ''}\ncompound-games.com`;
     const saveFn = isArchive ? saveArchiveResult : saveResult;

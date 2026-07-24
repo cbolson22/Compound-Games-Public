@@ -53,31 +53,24 @@ export default function AquarumBoard({
   })
   const solveSubmitted = useRef(false)
   const rotateCount = useRef(0)
-  const storageKey = puzzleId ? `aquarum-${puzzleId}` : null
+  const storageKey = `aquarum-inprog-${puzzleDate}`
 
-  const [savedElapsed] = useState(() => {
-    if (alreadyPlayed || !storageKey) return 0
-    return parseInt(localStorage.getItem(`${storageKey}-elapsed`) || '0', 10)
-  })
-
-  const [savedRotations] = useState<number[][] | undefined>(() => {
-    if (alreadyPlayed) return savedResult?.solveData?.finalRotations as number[][] | undefined
-    if (!storageKey) return undefined
+  const [{ savedElapsed, savedRotations }] = useState(() => {
+    if (alreadyPlayed) return {
+      savedElapsed: 0,
+      savedRotations: savedResult?.solveData?.finalRotations as number[][] | undefined,
+    }
     try {
       const raw = localStorage.getItem(storageKey)
-      if (!raw) return undefined
-      const parsed = JSON.parse(raw) as number[][]
-      if (
-        !Array.isArray(parsed) ||
-        parsed.length !== puzzle.size ||
-        !Array.isArray(parsed[0]) ||
-        parsed[0].length !== puzzle.size
-      ) {
-        localStorage.removeItem(storageKey)
-        return undefined
-      }
-      return parsed
-    } catch { return undefined }
+      if (!raw) return { savedElapsed: 0, savedRotations: undefined }
+      const parsed = JSON.parse(raw) as { elapsed: number; rotations: number[][] }
+      const rotations = Array.isArray(parsed.rotations) &&
+        parsed.rotations.length === puzzle.size &&
+        Array.isArray(parsed.rotations[0]) &&
+        parsed.rotations[0].length === puzzle.size
+        ? parsed.rotations : undefined
+      return { savedElapsed: parsed.elapsed ?? 0, savedRotations: rotations }
+    } catch { return { savedElapsed: 0, savedRotations: undefined } }
   })
 
   const [copied, setCopied] = useState(false)
@@ -89,22 +82,14 @@ export default function AquarumBoard({
   })
 
   useEffect(() => {
-    if (!storageKey || alreadyPlayed || solved) return
-    localStorage.setItem(`${storageKey}-elapsed`, String(elapsed))
-  }, [elapsed, storageKey, alreadyPlayed, solved])
-
-  useEffect(() => {
-    if (!storageKey || alreadyPlayed || solved) return
-    localStorage.setItem(storageKey, JSON.stringify(rotations))
-  }, [rotations, storageKey, alreadyPlayed, solved])
+    if (alreadyPlayed || solved) return
+    localStorage.setItem(storageKey, JSON.stringify({ elapsed, rotations }))
+  }, [elapsed, rotations, storageKey, alreadyPlayed, solved])
 
   useEffect(() => {
     if (!solved || alreadyPlayed || solveSubmitted.current) return
     solveSubmitted.current = true
-    if (storageKey) {
-      localStorage.removeItem(storageKey)
-      localStorage.removeItem(`${storageKey}-elapsed`)
-    }
+    localStorage.removeItem(storageKey)
     const rotationCount = rotateCount.current
     const share = `Aquarum #${puzzleNumber}\n🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''} · ⏱ ${fmtTime(elapsed)}\ncompound-games.com`
     const saveFn = isArchive ? saveArchiveResult : saveResult

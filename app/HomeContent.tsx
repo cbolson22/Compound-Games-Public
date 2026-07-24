@@ -95,7 +95,7 @@ export default function HomeContent() {
         <div className="flex flex-col items-center gap-1">
           <h1 className="font-serif text-5xl text-center">Compound Games</h1>
           <p className="text-sm text-[#aaa] text-center pt-1">
-            Six daily puzzles · resets at midnight CT
+            six daily puzzles · resets at midnight CT
           </p>
           {today && (
             <p className="text-[0.65rem] text-[#c5bcbc] uppercase tracking-widest mt-1">

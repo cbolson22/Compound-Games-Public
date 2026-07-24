@@ -125,7 +125,7 @@ export default function LumisBoard({
   const firstColors = useRef<string[]>([])
   const resetCount = useRef(0)
   const computedShare = useRef('')
-  const storageKey = puzzleId ? `lumis-${puzzleId}` : `lumis-${puzzleDate}`
+  const storageKey = `lumis-inprog-${puzzleDate}`
 
   const [{ initialElapsed, initialPlaced }] = useState(() => {
     if (alreadyPlayed) return {
