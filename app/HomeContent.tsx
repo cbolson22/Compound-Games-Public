@@ -7,12 +7,12 @@ import { hasPlayed, computeStreak, getLongestStreak, getBestTimeEntry, getBestSc
 import { fmtTime } from '@/lib/format'
 
 const GAMES = [
-  { href: '/numeris', name: 'Numeris', desc: 'Daily Number Puzzle', key: 'numeris' },
-  { href: '/lumis', name: 'Lumis', desc: 'Daily Memory Puzzle', key: 'lumis' },
-  { href: '/verba', name: 'Verba', desc: 'Daily Word Game', key: 'verba' },
-  { href: '/aquarum', name: 'Aquarum', desc: 'Daily Pipe Puzzle', key: 'aquarum' },
-  { href: '/compondus', name: 'Compondus', desc: 'Daily Word Chain', key: 'compondus' },
-  { href: '/loopa', name: 'Loopa', desc: 'Daily Loop Puzzle', key: 'loopa' },
+  { href: '/numeris', name: 'Numeris', desc: 'Equation Puzzle', key: 'numeris' },
+  { href: '/lumis', name: 'Lumis', desc: 'Memory Tiles', key: 'lumis' },
+  { href: '/verba', name: 'Verba', desc: 'Word Drop', key: 'verba' },
+  { href: '/aquarum', name: 'Aquarum', desc: 'Pipe Flow', key: 'aquarum' },
+  { href: '/compondus', name: 'Compondus', desc: 'Word Chain', key: 'compondus' },
+  { href: '/loopa', name: 'Loopa', desc: 'Close the Loop', key: 'loopa' },
 ] as const
 
 const TUTORIAL_CONTENT: Record<string, { title: string; body: string }> = {
@@ -139,7 +139,7 @@ function StatsModal({ game, gameName, today, onClose }: { game: string; gameName
               {game !== 'compondus' && bestTimeEntry && <StatRow label="Best time" value={fmtTime(bestTimeEntry.value)} href={puzzleHref(bestTimeEntry.date)} />}
               {game === 'verba' && bestScoreEntry && <StatRow label="Best score" value={`${bestScoreEntry.value} pts`} href={puzzleHref(bestScoreEntry.date)} />}
               {game === 'compondus' && bestScoreEntry && <StatRow label="Fewest wrong guesses" value={bestScoreEntry.value} href={puzzleHref(bestScoreEntry.date)} />}
-              {game === 'verba' && verbaBestWord && <StatRow label="Best word" value={`${verbaBestWord.word} · ${verbaBestWord.score} pts`} />}
+              {game === 'verba' && verbaBestWord && <StatRow label="Best word" value={`${verbaBestWord.word} · ${verbaBestWord.score} pts`} href={puzzleHref(verbaBestWord.date)} />}
             </div>
           </>
         )}
@@ -248,25 +248,25 @@ export default function HomeContent() {
         <div className="w-full flex flex-col gap-3">
           <Link
             href="/archive"
-            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-[#eef4fb] hover:bg-[#e4edf7] transition-colors border border-[#cfe0f5]"
+            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white hover:bg-[#fafafa] transition-colors border border-[#f0f0f0] hover:border-[#ddd]"
           >
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium text-[#1a1a1a]">🧩 Browse past puzzles</span>
-              <span className="text-xs text-[#6a90b8]">Play any archived puzzle</span>
+              <span className="text-xs text-[#aaa]">Play any archived puzzle</span>
             </div>
-            <span className="text-[#6a90b8] text-sm">→</span>
+            <span className="text-[#bbb] text-sm">→</span>
           </Link>
           <a
             href="https://buymeacoffee.com/compoundgames"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-[#f0faf4] hover:bg-[#e6f5ec] transition-colors border border-[#c3e6d0]"
+            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white hover:bg-[#fafafa] transition-colors border border-[#f0f0f0] hover:border-[#ddd]"
           >
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium text-[#1a1a1a]">☕ Support this project</span>
-              <span className="text-xs text-[#5a9e72]">Any support is appreciated!</span>
+              <span className="text-xs text-[#aaa]">Any support is appreciated!</span>
             </div>
-            <span className="text-[#5a9e72] text-sm">→</span>
+            <span className="text-[#bbb] text-sm">→</span>
           </a>
         </div>
 

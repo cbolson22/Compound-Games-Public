@@ -11,12 +11,12 @@ export const metadata: Metadata = {
 }
 
 const GAMES = [
-  { key: 'numeris', name: 'Numeris', desc: 'Daily Number Puzzle' },
-  { key: 'lumis', name: 'Lumis', desc: 'Daily Memory Puzzle' },
-  { key: 'verba', name: 'Verba', desc: 'Daily Word Game' },
-  { key: 'aquarum', name: 'Aquarum', desc: 'Daily Pipe Puzzle' },
-  { key: 'compondus', name: 'Compondus', desc: 'Daily Word Chain' },
-  { key: 'loopa', name: 'Loopa', desc: 'Daily Loop Puzzle' },
+  { key: 'numeris', name: 'Numeris', desc: 'Equation Puzzle' },
+  { key: 'lumis', name: 'Lumis', desc: 'Memory Tiles' },
+  { key: 'verba', name: 'Verba', desc: 'Word Drop' },
+  { key: 'aquarum', name: 'Aquarum', desc: 'Pipe Flow' },
+  { key: 'compondus', name: 'Compondus', desc: 'Word Chain' },
+  { key: 'loopa', name: 'Loopa', desc: 'Close the Loop' },
 ] as const
 
 export default async function ArchivePage() {

@@ -149,18 +149,21 @@ export function getPlayTimes(game: string): { earliest: string | null; latest: s
   return { earliest, latest }
 }
 
-export function getVerbaBestWord(): { word: string; score: number } | null {
+export function getVerbaBestWord(): { word: string; score: number; date: string } | null {
   if (typeof window === 'undefined') return null
-  let best: { word: string; score: number } | null = null
+  let best: { word: string; score: number; date: string } | null = null
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i)
-    if (!k?.startsWith('cg_verba_')) continue
+    const isDaily = k?.startsWith('cg_verba_')
+    const isArchive = k?.startsWith('cga_verba_')
+    if (!isDaily && !isArchive) continue
     try {
-      const r = JSON.parse(localStorage.getItem(k)!) as GameResult
+      const r = JSON.parse(localStorage.getItem(k!)!) as GameResult
       const words = r.solveData?.words as { word: string; score: number }[] | undefined
       if (!words) continue
+      const date = k!.replace(isDaily ? 'cg_verba_' : 'cga_verba_', '')
       for (const w of words) {
-        if (!best || w.score > best.score) best = w
+        if (!best || w.score > best.score) best = { ...w, date }
       }
     } catch { /* skip */ }
   }
