@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import posthog from 'posthog-js'
 import { useCompondus, type CompondusSavedState } from './useCompondus'
 import type { CompondusPuzzle } from '@/lib/puzzles/compondus'
 import { saveResult, saveArchiveResult, getResult, getArchiveResult } from '@/lib/localStorage'
@@ -62,7 +63,6 @@ function HiddenRow({
 
 export default function CompondusBoard({
   puzzle,
-  puzzleId,
   puzzleDate,
   puzzleNumber,
   isArchive = false,
@@ -78,6 +78,7 @@ export default function CompondusBoard({
     return { savedResult: result, alreadyPlayed: result !== null }
   })
   const solveSubmitted = useRef(false)
+  // eslint-disable-next-line react-hooks/purity
   const startTimeRef = useRef(Date.now())
   const perSlotWrong = useRef<number[]>(Array(puzzle.chain.length - 2).fill(0))
 
@@ -107,7 +108,6 @@ export default function CompondusBoard({
   }, [alreadyPlayed])
 
   useEffect(() => {
-    setTypedLetters([])
     if (hiddenInputRef.current) hiddenInputRef.current.value = ''
     if (!solved && !alreadyPlayed) {
       setTimeout(() => hiddenInputRef.current?.focus(), 50)
@@ -121,6 +121,7 @@ export default function CompondusBoard({
     if (!correct && fullGuess.length >= target.length) {
       perSlotWrong.current[currentSlot] = (perSlotWrong.current[currentSlot] ?? 0) + 1
     }
+    setTypedLetters([])
   }, [submit, typedLetters, currentSlot, hidden, revealedCounts])
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,7 +160,14 @@ export default function CompondusBoard({
       share,
       solveData: { perSlotWrong: [...perSlotWrong.current] },
     })
-  }, [solved, wrongCount, revealedCounts, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
+    posthog.capture('compondus_completed', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      time_seconds: timeTaken,
+      wrong_count: wrongCount,
+      is_archive: isArchive,
+    })
+  }, [solved, wrongCount, revealedCounts, puzzleDate, puzzleNumber, storageKey, alreadyPlayed, isArchive])
 
   useEffect(() => {
     if (alreadyPlayed || solved) return
@@ -174,22 +182,26 @@ export default function CompondusBoard({
   const displayScore = alreadyPlayed ? (savedResult?.score ?? 0) : wrongCount
   const displaySolvedMask = played ? Array(hidden.length).fill(true) : solvedMask
   const displayRevealedCounts = played ? hidden.map(w => w.length) : revealedCounts
-  const shareText = alreadyPlayed
-    ? savedResult?.share
-    : (() => {
-        const NUM_EMOJIS = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣']
-        const slotEmojis = perSlotWrong.current.map(wrong => {
-          if (wrong === 0) return '✅'
-          if (wrong > 9) return '➕'
-          return NUM_EMOJIS[wrong - 1]
-        }).join(' ')
-        return `Compondus #${puzzleNumber}\n${slotEmojis}\n🎯 ${wrongCount} wrong guess${wrongCount !== 1 ? 'es' : ''}\ncompound-games.com`
-      })()
-
   const handleShare = () => {
+    const shareText = alreadyPlayed
+      ? savedResult?.share
+      : (() => {
+          const NUM_EMOJIS = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣']
+          const slotEmojis = perSlotWrong.current.map(wrong => {
+            if (wrong === 0) return '✅'
+            if (wrong > 9) return '➕'
+            return NUM_EMOJIS[wrong - 1]
+          }).join(' ')
+          return `Compondus #${puzzleNumber}\n${slotEmojis}\n🎯 ${wrongCount} wrong guess${wrongCount !== 1 ? 'es' : ''}\ncompound-games.com`
+        })()
     navigator.clipboard.writeText(shareText ?? '').then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    })
+    posthog.capture('compondus_shared', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      is_archive: isArchive,
     })
   }
 

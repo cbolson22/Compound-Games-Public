@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import posthog from 'posthog-js'
 import {
   DndContext, DragOverlay, PointerSensor, TouchSensor,
   useDraggable, useDroppable, useSensor, useSensors,
   pointerWithin,
   type DragEndEvent, type DragStartEvent,
 } from '@dnd-kit/core'
-import { useVerba, MAX_COL_HEIGHT, GAME_DURATION, WORD_COLORS, type Grid, type VerbaSavedState } from './useVerba'
+import { useVerba, MAX_COL_HEIGHT, WORD_COLORS, type VerbaSavedState } from './useVerba'
 import type { VerbaPuzzle } from '@/lib/puzzles/verba'
 import { LETTER_VALUES } from '@/lib/scoring'
 import { fmtTime } from '@/lib/format'
@@ -85,7 +86,6 @@ function Column({ colIdx, letters, highlightedCells, canPlaceHere, onTap }: {
 
 export default function VerbaBoard({
   puzzle,
-  puzzleId,
   puzzleDate,
   puzzleNumber,
   isArchive = false,
@@ -153,7 +153,14 @@ export default function VerbaBoard({
       share,
       solveData: { words: detectedWords.map(w => ({ word: w.word, score: w.score })), grid },
     })
-  }, [gameOver, totalScore, detectedWords, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
+    posthog.capture('verba_completed', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      score: totalScore,
+      word_count: detectedWords.length,
+      is_archive: isArchive,
+    })
+  }, [gameOver, totalScore, detectedWords, puzzleDate, puzzleNumber, storageKey, alreadyPlayed, isArchive, grid])
 
   // Persist in-progress state
   useEffect(() => {
@@ -215,6 +222,11 @@ export default function VerbaBoard({
     navigator.clipboard.writeText(shareText ?? '').then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    })
+    posthog.capture('verba_shared', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      is_archive: isArchive,
     })
   }
 

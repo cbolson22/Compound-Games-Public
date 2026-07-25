@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import posthog from 'posthog-js'
 import { fmtTime } from '@/lib/format'
 import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
 import { useAquarum, getOpenSides, type AquarumPuzzle, type PipeCell } from './useAquarum'
@@ -32,7 +33,6 @@ function PipeSvg({ cell, rotation, color }: { cell: PipeCell; rotation: number; 
 
 export default function AquarumBoard({
   puzzle,
-  puzzleId,
   puzzleDate,
   puzzleNumber,
   isArchive = false,
@@ -99,21 +99,32 @@ export default function AquarumBoard({
       share,
       solveData: { finalRotations: rotations },
     })
-  }, [solved, elapsed, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
+    posthog.capture('aquarum_completed', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      time_seconds: elapsed,
+      rotation_count: rotationCount,
+      is_archive: isArchive,
+    })
+  }, [solved, elapsed, puzzleDate, puzzleNumber, storageKey, alreadyPlayed, isArchive, rotations])
 
   const displayTime = alreadyPlayed ? (savedResult?.time_seconds ?? 0) : elapsed
   const isDone = solved || alreadyPlayed
-  const shareText = alreadyPlayed
-    ? savedResult?.share
-    : (() => {
-        const rotationCount = rotateCount.current
-        return `Aquarum #${puzzleNumber}\n🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''} · ⏱ ${fmtTime(elapsed)}\ncompound-games.com`
-      })()
-
   const handleShare = () => {
+    const shareText = alreadyPlayed
+      ? savedResult?.share
+      : (() => {
+          const rotationCount = rotateCount.current
+          return `Aquarum #${puzzleNumber}\n🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''} · ⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+        })()
     navigator.clipboard.writeText(shareText ?? '').then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    })
+    posthog.capture('aquarum_shared', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      is_archive: isArchive,
     })
   }
 

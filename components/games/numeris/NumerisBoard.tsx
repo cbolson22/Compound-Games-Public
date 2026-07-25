@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import posthog from "posthog-js";
 import { fmtTime } from "@/lib/format";
 import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from "@/lib/localStorage";
 import {
@@ -113,7 +114,6 @@ function SlotCell({
 
 export default function NumerisBoard({
   puzzle,
-  puzzleId,
   puzzleDate,
   puzzleNumber,
   isArchive = false,
@@ -211,7 +211,14 @@ export default function NumerisBoard({
       share,
       solveData: { slots: slotContents },
     });
-  }, [solved, elapsed, puzzleDate, puzzleNumber, puzzleId, alreadyPlayed]);
+    posthog.capture("numeris_completed", {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      time_seconds: elapsed,
+      move_count: moves,
+      is_archive: isArchive,
+    });
+  }, [solved, elapsed, puzzleDate, puzzleNumber, alreadyPlayed, isArchive, slotContents]);
 
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -247,7 +254,7 @@ export default function NumerisBoard({
         }
       }
     },
-    [placeTile, swapSlots, returnSlot],
+    [placeTile, handleSwapSlots, handleReturnSlot],
   );
 
   const handleTileClick = useCallback(
@@ -285,17 +292,21 @@ export default function NumerisBoard({
 
   const displayTime = alreadyPlayed ? (savedResult?.time_seconds ?? 0) : elapsed;
   const isDone = solved || alreadyPlayed;
-  const shareText = alreadyPlayed
-    ? savedResult?.share
-    : (() => {
-        const moves = moveCount.current;
-        return `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} change${moves !== 1 ? 's' : ''}\ncompound-games.com`;
-      })();
-
   const handleShare = () => {
+    const shareText = alreadyPlayed
+      ? savedResult?.share
+      : (() => {
+          const moves = moveCount.current;
+          return `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} change${moves !== 1 ? 's' : ''}\ncompound-games.com`;
+        })();
     navigator.clipboard.writeText(shareText ?? "").then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    });
+    posthog.capture("numeris_shared", {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      is_archive: isArchive,
     });
   };
 

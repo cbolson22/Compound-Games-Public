@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import posthog from 'posthog-js'
 import Link from 'next/link'
 import { getTodaysCT, dayBefore } from '@/lib/dates'
 import { hasPlayed, computeStreak, getLongestStreak, getBestTimeEntry, getBestScoreEntry, getVerbaBestWord } from '@/lib/localStorage'
@@ -207,7 +208,7 @@ export default function HomeContent() {
                 <div className="flex flex-col items-end gap-2 select-none">
                   <div className="flex items-center gap-1.5">
                     <button
-                      onClick={() => setStatsGame(g.key)}
+                      onClick={() => { setStatsGame(g.key); posthog.capture('stats_viewed', { game: g.key }) }}
                       className="relative z-10 w-7 h-7 shrink-0 rounded-full border border-[#e8e8e8] text-[#ccc] text-xs hover:border-[#bbb] hover:text-[#555] transition-colors flex items-center justify-center"
                       aria-label={`${g.name} stats`}
                     >
@@ -218,7 +219,7 @@ export default function HomeContent() {
                       </svg>
                     </button>
                     <button
-                      onClick={() => setTutorialGame(g.key)}
+                      onClick={() => { setTutorialGame(g.key); posthog.capture('tutorial_viewed', { game: g.key }) }}
                       className="relative z-10 w-7 h-7 shrink-0 rounded-full border border-[#e8e8e8] text-[#ccc] text-xs hover:border-[#bbb] hover:text-[#555] transition-colors flex items-center justify-center"
                       aria-label={`How to play ${g.name}`}
                     >
@@ -261,6 +262,7 @@ export default function HomeContent() {
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white hover:bg-[#fafafa] transition-colors border border-[#f0f0f0] hover:border-[#ddd]"
+            onClick={() => posthog.capture('support_clicked')}
           >
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium text-[#1a1a1a]">☕ Support this project</span>

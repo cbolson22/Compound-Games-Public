@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import posthog from 'posthog-js'
 import {
   DndContext, DragOverlay, PointerSensor, TouchSensor,
   useDraggable, useDroppable, useSensor, useSensors,
@@ -102,7 +103,6 @@ function GridCell({
 
 export default function LumisBoard({
   puzzle,
-  puzzleId,
   puzzleDate,
   puzzleNumber,
   isArchive = false,
@@ -184,7 +184,14 @@ export default function LumisBoard({
       share,
       solveData: { placed },
     })
-  }, [solved, elapsed, puzzleDate, puzzleNumber, puzzle.pieces, storageKey, alreadyPlayed])
+    posthog.capture('lumis_completed', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      time_seconds: elapsed,
+      reset_count: resetCount.current,
+      is_archive: isArchive,
+    })
+  }, [solved, elapsed, puzzleDate, puzzleNumber, puzzle.pieces, storageKey, alreadyPlayed, isArchive, placed])
 
   const [activeId, setActiveId] = useState<string | null>(null)
   const [hoveredCell, setHoveredCell] = useState<[number, number] | null>(null)
@@ -281,6 +288,11 @@ export default function LumisBoard({
     navigator.clipboard.writeText(shareText ?? '').then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    })
+    posthog.capture('lumis_shared', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      is_archive: isArchive,
     })
   }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import posthog from 'posthog-js'
 import { fmtTime } from '@/lib/format'
 import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
 import { useLoopa, hKey, vKey, cellEdgeCount, type EdgeKey } from './useLoopa'
@@ -28,7 +29,6 @@ const DOT_ACTIVE = '#6366f1'
 
 export default function LoopaBoard({
   puzzle,
-  puzzleId,
   puzzleDate,
   puzzleNumber,
   isArchive = false,
@@ -98,7 +98,13 @@ export default function LoopaBoard({
       share,
       solveData: { edges: [...edges] },
     })
-  }, [solved, elapsed, puzzleDate, puzzleNumber, storageKey, alreadyPlayed])
+    posthog.capture('loopa_completed', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      time_seconds: elapsed,
+      is_archive: isArchive,
+    })
+  }, [solved, elapsed, puzzleDate, puzzleNumber, storageKey, alreadyPlayed, isArchive, edges])
 
   const displayTime = alreadyPlayed ? (savedResult?.time_seconds ?? 0) : elapsed
   const isDone = solved || alreadyPlayed
@@ -110,6 +116,11 @@ export default function LoopaBoard({
     navigator.clipboard.writeText(shareText ?? '').then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    })
+    posthog.capture('loopa_shared', {
+      puzzle_number: puzzleNumber,
+      puzzle_date: puzzleDate,
+      is_archive: isArchive,
     })
   }
 
