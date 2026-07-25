@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { getTodaysCT } from '@/lib/dates'
-import { hasPlayed, computeStreak } from '@/lib/localStorage'
+import { getTodaysCT, dayBefore } from '@/lib/dates'
+import { hasPlayed, computeStreak, getLongestStreak, getBestTimeEntry, getBestScoreEntry, getVerbaBestWord } from '@/lib/localStorage'
+import { fmtTime } from '@/lib/format'
 
 const GAMES = [
   { href: '/numeris', name: 'Numeris', desc: 'Daily Number Puzzle', key: 'numeris' },
@@ -74,6 +75,88 @@ function TutorialModal({ game, onClose }: { game: string; onClose: () => void })
   )
 }
 
+function StatCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="flex flex-col items-center gap-1 bg-[#f8f8f8] rounded-2xl py-4 px-3">
+      <span className="text-2xl font-serif text-[#1a1a1a]">{value}</span>
+      <span className="text-[11px] text-[#aaa] uppercase tracking-wide text-center">{label}</span>
+    </div>
+  )
+}
+
+function StatRow({ label, value, href }: { label: string; value: string | number | null; href?: string }) {
+  if (value == null) return null
+  if (href) {
+    return (
+      <Link href={href} className="flex items-center justify-between px-4 py-3 rounded-xl bg-[#f8f8f8] hover:bg-[#f0f0f0] transition-colors group mb-2 last:mb-0">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[11px] text-[#aaa] uppercase tracking-wide">{label}</span>
+          <span className="text-sm font-medium text-[#1a1a1a]">{value}</span>
+        </div>
+        <span className="text-[#ccc] group-hover:text-[#999] transition-colors text-sm">→</span>
+      </Link>
+    )
+  }
+  return (
+    <div className="flex justify-between items-center py-2.5 border-b border-[#f5f5f5] last:border-0">
+      <span className="text-sm text-[#888]">{label}</span>
+      <span className="text-sm font-medium text-[#1a1a1a]">{value}</span>
+    </div>
+  )
+}
+
+function StatsModal({ game, gameName, today, onClose }: { game: string; gameName: string; today: string; onClose: () => void }) {
+  const currentStreak = Math.max(computeStreak(game, today), computeStreak(game, dayBefore(today)))
+  const longestStreak = getLongestStreak(game)
+  const bestTimeEntry = getBestTimeEntry(game)
+  const bestScoreEntry = getBestScoreEntry(game)
+  const verbaBestWord = game === 'verba' ? getVerbaBestWord() : null
+
+  const puzzleHref = (date: string) =>
+    date === today ? `/${game}` : `/archive/${game}/${date}`
+
+  return (
+    <div className="fixed inset-0 bg-black/45 flex items-center justify-center z-50 p-6" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-sm flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+
+        <div className="px-7 pt-7 pb-5">
+          <p className="text-xs text-[#bbb] uppercase tracking-widest mb-1">Stats</p>
+          <h2 className="font-serif text-3xl text-[#1a1a1a]">{gameName}</h2>
+        </div>
+
+        {currentStreak === 0 && longestStreak === 0 && bestTimeEntry == null && bestScoreEntry == null ? (
+          <div className="px-7 pb-7">
+            <p className="text-sm text-[#bbb]">No plays yet — come back after your first game!</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2 px-7 pb-5">
+              <StatCard label="Streak" value={currentStreak > 0 ? `${currentStreak}🔥` : currentStreak} />
+              <StatCard label="Best streak" value={longestStreak} />
+            </div>
+
+            <div className="px-7 pb-2">
+              {game !== 'compondus' && bestTimeEntry && <StatRow label="Best time" value={fmtTime(bestTimeEntry.value)} href={puzzleHref(bestTimeEntry.date)} />}
+              {game === 'verba' && bestScoreEntry && <StatRow label="Best score" value={`${bestScoreEntry.value} pts`} href={puzzleHref(bestScoreEntry.date)} />}
+              {game === 'compondus' && bestScoreEntry && <StatRow label="Fewest wrong guesses" value={bestScoreEntry.value} href={puzzleHref(bestScoreEntry.date)} />}
+              {game === 'verba' && verbaBestWord && <StatRow label="Best word" value={`${verbaBestWord.word} · ${verbaBestWord.score} pts`} />}
+            </div>
+          </>
+        )}
+
+        <div className="px-7 pb-7 pt-3">
+          <button
+            className="w-full py-3 rounded-full bg-[#1a1a1a] text-white text-sm font-medium hover:opacity-85 transition-opacity"
+            onClick={onClose}
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function HomeContent() {
   // ssr: false guarantees window/localStorage are available here — no useEffect needed
   const [{ today, statuses, streaks }] = useState(() => {
@@ -84,12 +167,13 @@ export default function HomeContent() {
       if (hasPlayed(g.key, d)) st[g.key] = 'done'
       else if (localStorage.getItem(`${g.key}-inprog-${d}`)) st[g.key] = 'inprog'
       else st[g.key] = 'play'
-      s[g.key] = computeStreak(g.key, d)
+      s[g.key] = Math.max(computeStreak(g.key, d), computeStreak(g.key, dayBefore(d)))
     }
     return { today: d, statuses: st, streaks: s }
   })
 
   const [tutorialGame, setTutorialGame] = useState<string | null>(null)
+  const [statsGame, setStatsGame] = useState<string | null>(null)
 
   return (
     <main className="min-h-screen flex flex-col items-center p-6 pb-16">
@@ -113,34 +197,49 @@ export default function HomeContent() {
             return (
               <div
                 key={g.key}
-                className="relative flex items-center gap-3 px-6 py-6 border border-[#f0f0f0] rounded-2xl hover:border-[#ddd] transition-colors bg-white"
+                className="relative flex items-start gap-3 px-6 py-6 border border-[#f0f0f0] rounded-2xl hover:border-[#ddd] transition-colors bg-white"
               >
                 <Link href={g.href} className="absolute inset-0 rounded-2xl" aria-label={g.name} />
                 <div className="flex-1 select-none">
                   <div className="font-serif text-2xl">{g.name}</div>
                   <div className="text-sm text-[#aaa]">{g.desc}</div>
                 </div>
-                <div className="flex items-center gap-2 select-none">
-                  {streak > 0 && (
-                    <span className="text-xs text-[#f59e0b] font-medium">{streak}🔥</span>
-                  )}
-                  {status === 'done' && (
-                    <span className="text-xs font-medium text-[#059669] bg-[#d1fae5] px-2 py-0.5 rounded-full">✓ Done</span>
-                  )}
-                  {status === 'inprog' && (
-                    <span className="text-xs font-medium text-[#d97706] bg-[#fef3c7] px-2 py-0.5 rounded-full">Continue</span>
-                  )}
-                  {status === 'play' && (
-                    <span className="text-xs font-medium text-[#aaa] bg-[#f5f5f5] px-2 py-0.5 rounded-full">Play</span>
-                  )}
+                <div className="flex flex-col items-end gap-2 select-none">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setStatsGame(g.key)}
+                      className="relative z-10 w-7 h-7 shrink-0 rounded-full border border-[#e8e8e8] text-[#ccc] text-xs hover:border-[#bbb] hover:text-[#555] transition-colors flex items-center justify-center"
+                      aria-label={`${g.name} stats`}
+                    >
+                      <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
+                        <rect x="0" y="5" width="3" height="6" rx="0.5"/>
+                        <rect x="4" y="2" width="3" height="9" rx="0.5"/>
+                        <rect x="8" y="0" width="3" height="11" rx="0.5"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setTutorialGame(g.key)}
+                      className="relative z-10 w-7 h-7 shrink-0 rounded-full border border-[#e8e8e8] text-[#ccc] text-xs hover:border-[#bbb] hover:text-[#555] transition-colors flex items-center justify-center"
+                      aria-label={`How to play ${g.name}`}
+                    >
+                      ?
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {streak > 0 && (
+                      <span className="text-xs text-[#f59e0b] font-medium">{streak}🔥</span>
+                    )}
+                    {status === 'done' && (
+                      <span className="text-xs font-medium text-[#059669] bg-[#d1fae5] px-2 py-0.5 rounded-full">✓ Done</span>
+                    )}
+                    {status === 'inprog' && (
+                      <span className="text-xs font-medium text-[#d97706] bg-[#fef3c7] px-2 py-0.5 rounded-full">Continue</span>
+                    )}
+                    {status === 'play' && (
+                      <span className="text-xs font-medium text-[#aaa] bg-[#f5f5f5] px-2 py-0.5 rounded-full">Play</span>
+                    )}
+                  </div>
                 </div>
-                <button
-                  onClick={() => setTutorialGame(g.key)}
-                  className="relative z-10 w-7 h-7 shrink-0 rounded-full border border-[#e8e8e8] text-[#ccc] text-xs hover:border-[#bbb] hover:text-[#555] transition-colors flex items-center justify-center"
-                  aria-label={`How to play ${g.name}`}
-                >
-                  ?
-                </button>
               </div>
             )
           })}
@@ -175,6 +274,14 @@ export default function HomeContent() {
 
       {tutorialGame && (
         <TutorialModal game={tutorialGame} onClose={() => setTutorialGame(null)} />
+      )}
+      {statsGame && (
+        <StatsModal
+          game={statsGame}
+          gameName={GAMES.find(g => g.key === statsGame)?.name ?? statsGame}
+          today={today}
+          onClose={() => setStatsGame(null)}
+        />
       )}
     </main>
   )

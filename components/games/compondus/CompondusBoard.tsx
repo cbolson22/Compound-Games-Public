@@ -211,12 +211,14 @@ export default function CompondusBoard({
       <div className={styles.title}>Compondus</div>
       <div className={styles.sub}>Puzzle #{puzzleNumber}</div>
 
-      <div className={styles.statsRow}>
-        {displayScore > 0
-          ? <span className={styles.wrongBadge}>{displayScore} wrong guess{displayScore !== 1 ? 'es' : ''}</span>
-          : <span className={styles.perfectBadge}>{played ? 'No wrong guesses' : 'Perfect so far'}</span>
-        }
-      </div>
+      {!played && (
+        <div className={styles.statsRow}>
+          {displayScore > 0
+            ? <span className={styles.wrongBadge}>{displayScore} wrong guess{displayScore !== 1 ? 'es' : ''}</span>
+            : <span className={styles.perfectBadge}>Perfect so far</span>
+          }
+        </div>
+      )}
 
       <div className={styles.ladder} onClick={() => !played ? hiddenInputRef.current?.focus() : undefined}>
         <AnchorRow word={puzzle.chain[0]} position="start" />
@@ -244,12 +246,19 @@ export default function CompondusBoard({
       )}
 
       {played && (
-        <button
-          onClick={handleShare}
-          className="mt-4 px-4 py-1.5 rounded-full text-xs font-medium bg-[#1a1a1a] text-white hover:bg-[#333] transition-colors"
-        >
-          {copied ? 'Copied!' : 'Share result'}
-        </button>
+        <div className={styles.solvedBanner}>
+          <div className={styles.solvedTxt}>Solved!</div>
+          {wrongCount === 0
+            ? <div className={styles.solvedSub}>Perfect — no wrong guesses</div>
+            : <div className={styles.solvedSub}>{wrongCount} wrong guess{wrongCount !== 1 ? 'es' : ''}</div>
+          }
+          <button
+            onClick={handleShare}
+            className="mt-2 px-4 py-1.5 rounded-full text-xs font-medium bg-[#1a1a1a] text-white hover:bg-[#333] transition-colors"
+          >
+            {copied ? 'Copied!' : 'Share result'}
+          </button>
+        </div>
       )}
     </div>
   )
