@@ -76,15 +76,17 @@ function TutorialModal({ game, onClose }: { game: string; onClose: () => void })
 
 export default function HomeContent() {
   // ssr: false guarantees window/localStorage are available here — no useEffect needed
-  const [{ today, played, streaks }] = useState(() => {
+  const [{ today, statuses, streaks }] = useState(() => {
     const d = getTodaysCT()
-    const p: Record<string, boolean> = {}
+    const st: Record<string, 'done' | 'inprog' | 'play'> = {}
     const s: Record<string, number> = {}
     for (const g of GAMES) {
-      p[g.key] = hasPlayed(g.key, d)
+      if (hasPlayed(g.key, d)) st[g.key] = 'done'
+      else if (localStorage.getItem(`${g.key}-inprog-${d}`)) st[g.key] = 'inprog'
+      else st[g.key] = 'play'
       s[g.key] = computeStreak(g.key, d)
     }
-    return { today: d, played: p, streaks: s }
+    return { today: d, statuses: st, streaks: s }
   })
 
   const [tutorialGame, setTutorialGame] = useState<string | null>(null)
@@ -106,7 +108,7 @@ export default function HomeContent() {
 
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
           {GAMES.map(g => {
-            const done = played[g.key] ?? false
+            const status = statuses[g.key] ?? 'play'
             const streak = streaks[g.key] ?? 0
             return (
               <div
@@ -122,9 +124,13 @@ export default function HomeContent() {
                   {streak > 0 && (
                     <span className="text-xs text-[#f59e0b] font-medium">{streak}🔥</span>
                   )}
-                  {done ? (
+                  {status === 'done' && (
                     <span className="text-xs font-medium text-[#059669] bg-[#d1fae5] px-2 py-0.5 rounded-full">✓ Done</span>
-                  ) : (
+                  )}
+                  {status === 'inprog' && (
+                    <span className="text-xs font-medium text-[#d97706] bg-[#fef3c7] px-2 py-0.5 rounded-full">Continue</span>
+                  )}
+                  {status === 'play' && (
                     <span className="text-xs font-medium text-[#aaa] bg-[#f5f5f5] px-2 py-0.5 rounded-full">Play</span>
                   )}
                 </div>
