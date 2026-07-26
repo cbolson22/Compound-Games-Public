@@ -5,6 +5,7 @@ import posthog from 'posthog-js'
 import { useCompondus, type CompondusSavedState } from './useCompondus'
 import type { CompondusPuzzle } from '@/lib/puzzles/compondus'
 import { saveResult, saveArchiveResult, getResult, getArchiveResult } from '@/lib/localStorage'
+import { saveScoreToSupabase } from '@/lib/supabaseScores'
 import styles from './compondus.module.css'
 
 function AnchorRow({ word, position }: { word: string; position: 'start' | 'end' }) {
@@ -152,14 +153,16 @@ export default function CompondusBoard({
       return NUM_EMOJIS[wrong - 1]
     }).join(' ')
     const share = `Compondus #${puzzleNumber}\n${slotEmojis}\n🎯 ${wrongCount} wrong guess${wrongCount !== 1 ? 'es' : ''}\ncompound-games.com`
-    const saveFn = isArchive ? saveArchiveResult : saveResult
-    saveFn('compondus', puzzleDate, {
+    const result = {
       time_seconds: timeTaken,
       score: wrongCount,
       completed_at: new Date().toISOString(),
       share,
       solveData: { perSlotWrong: [...perSlotWrong.current] },
-    })
+    }
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('compondus', puzzleDate, result)
+    saveScoreToSupabase('compondus', puzzleDate, isArchive, result).catch(() => {})
     posthog.capture('compondus_completed', {
       puzzle_number: puzzleNumber,
       puzzle_date: puzzleDate,

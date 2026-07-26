@@ -13,6 +13,7 @@ import type { VerbaPuzzle } from '@/lib/puzzles/verba'
 import { LETTER_VALUES } from '@/lib/scoring'
 import { fmtTime } from '@/lib/format'
 import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
+import { saveScoreToSupabase } from '@/lib/supabaseScores'
 import styles from './verba.module.css'
 
 function DraggableTile({ tileId, letter, available, selected, onSelect }: {
@@ -145,13 +146,15 @@ export default function VerbaBoard({
       .map((w, i) => `${WORD_EMOJIS[i % WORD_EMOJIS.length]} +${w.score}`)
       .join(' · ')
     const share = `Verba #${puzzleNumber}\n📊 ${totalScore} pts${wordLine ? `\n${wordLine}` : ''}\ncompound-games.com`
-    const saveFn = isArchive ? saveArchiveResult : saveResult
-    saveFn('verba', puzzleDate, {
+    const result = {
       score: totalScore,
       completed_at: new Date().toISOString(),
       share,
       solveData: { words: detectedWords.map(w => ({ word: w.word, score: w.score })), grid },
-    })
+    }
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('verba', puzzleDate, result)
+    saveScoreToSupabase('verba', puzzleDate, isArchive, result).catch(() => {})
     posthog.capture('verba_completed', {
       puzzle_number: puzzleNumber,
       puzzle_date: puzzleDate,

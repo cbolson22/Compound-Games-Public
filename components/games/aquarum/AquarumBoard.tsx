@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import posthog from 'posthog-js'
 import { fmtTime } from '@/lib/format'
 import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
+import { saveScoreToSupabase } from '@/lib/supabaseScores'
 import { useAquarum, getOpenSides, type AquarumPuzzle, type PipeCell } from './useAquarum'
 import styles from './aquarum.module.css'
 
@@ -92,13 +93,15 @@ export default function AquarumBoard({
     localStorage.removeItem(storageKey)
     const rotationCount = rotateCount.current
     const share = `Aquarum #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · 🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''}\ncompound-games.com`
-    const saveFn = isArchive ? saveArchiveResult : saveResult
-    saveFn('aquarum', puzzleDate, {
+    const result = {
       time_seconds: elapsed,
       completed_at: new Date().toISOString(),
       share,
       solveData: { finalRotations: rotations },
-    })
+    }
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('aquarum', puzzleDate, result)
+    saveScoreToSupabase('aquarum', puzzleDate, isArchive, result).catch(() => {})
     posthog.capture('aquarum_completed', {
       puzzle_number: puzzleNumber,
       puzzle_date: puzzleDate,

@@ -11,6 +11,7 @@ import {
 import { useLumis, type LumisPuzzle, type CellPos, type PieceData, type PlacedPiece } from './useLumis'
 import { fmtTime } from '@/lib/format'
 import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
+import { saveScoreToSupabase } from '@/lib/supabaseScores'
 import styles from './lumis.module.css'
 
 const PIECE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#f43f5e', '#14b8a6']
@@ -176,13 +177,15 @@ export default function LumisBoard({
     const resets = resetCount.current
     const share = `Lumis #${puzzleNumber}\nFirst pieces placed: ${colorEmojis}\n⏱ ${fmtTime(elapsed)} · ${resets} reset${resets !== 1 ? 's' : ''}\ncompound-games.com`
     computedShare.current = share
-    const saveFn = isArchive ? saveArchiveResult : saveResult
-    saveFn('lumis', puzzleDate, {
+    const result = {
       time_seconds: elapsed,
       completed_at: new Date().toISOString(),
       share,
       solveData: { placed },
-    })
+    }
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('lumis', puzzleDate, result)
+    saveScoreToSupabase('lumis', puzzleDate, isArchive, result).catch(() => {})
     posthog.capture('lumis_completed', {
       puzzle_number: puzzleNumber,
       puzzle_date: puzzleDate,

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import posthog from 'posthog-js'
 import { fmtTime } from '@/lib/format'
 import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from '@/lib/localStorage'
+import { saveScoreToSupabase } from '@/lib/supabaseScores'
 import { useLoopa, hKey, vKey, cellEdgeCount, type EdgeKey } from './useLoopa'
 import type { LoopaPuzzle } from '@/lib/puzzles/loopa'
 import styles from './loopa.module.css'
@@ -91,13 +92,15 @@ export default function LoopaBoard({
     solveSubmitted.current = true
     localStorage.removeItem(storageKey)
     const share = `Loopa #${puzzleNumber}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
-    const saveFn = isArchive ? saveArchiveResult : saveResult
-    saveFn('loopa', puzzleDate, {
+    const result = {
       time_seconds: elapsed,
       completed_at: new Date().toISOString(),
       share,
       solveData: { edges: [...edges] },
-    })
+    }
+    const saveFn = isArchive ? saveArchiveResult : saveResult
+    saveFn('loopa', puzzleDate, result)
+    saveScoreToSupabase('loopa', puzzleDate, isArchive, result).catch(() => {})
     posthog.capture('loopa_completed', {
       puzzle_number: puzzleNumber,
       puzzle_date: puzzleDate,

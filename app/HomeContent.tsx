@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import posthog from 'posthog-js'
 import Link from 'next/link'
+import type { User } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 import { getTodaysCT, dayBefore } from '@/lib/dates'
-import { hasPlayed, computeStreak, getLongestStreak, getBestTimeEntry, getBestScoreEntry, getVerbaBestWord } from '@/lib/localStorage'
+import { hasPlayed, computeStreak, getLongestStreak, getBestTimeEntry, getBestScoreEntry, getVerbaBestWord, migrateToAnonNamespace, clearAccountLocalStorage, clearCurrentUser } from '@/lib/localStorage'
 import { fmtTime } from '@/lib/format'
+import AuthModal from '@/components/AuthModal'
 
 const GAMES = [
   { href: '/numeris', name: 'Numeris', desc: 'Equation Puzzle', key: 'numeris' },
@@ -158,20 +161,58 @@ function StatsModal({ game, gameName, today, onClose }: { game: string; gameName
   )
 }
 
+function readGameState(d: string) {
+  const st: Record<string, 'done' | 'inprog' | 'play'> = {}
+  const s: Record<string, number> = {}
+  for (const g of GAMES) {
+    if (hasPlayed(g.key, d)) st[g.key] = 'done'
+    else if (localStorage.getItem(`${g.key}-inprog-${d}`)) st[g.key] = 'inprog'
+    else st[g.key] = 'play'
+    s[g.key] = Math.max(computeStreak(g.key, d), computeStreak(g.key, dayBefore(d)))
+  }
+  return { statuses: st, streaks: s }
+}
+
 export default function HomeContent() {
-  // ssr: false guarantees window/localStorage are available here — no useEffect needed
-  const [{ today, statuses, streaks }] = useState(() => {
-    const d = getTodaysCT()
-    const st: Record<string, 'done' | 'inprog' | 'play'> = {}
-    const s: Record<string, number> = {}
-    for (const g of GAMES) {
-      if (hasPlayed(g.key, d)) st[g.key] = 'done'
-      else if (localStorage.getItem(`${g.key}-inprog-${d}`)) st[g.key] = 'inprog'
-      else st[g.key] = 'play'
-      s[g.key] = Math.max(computeStreak(g.key, d), computeStreak(g.key, dayBefore(d)))
-    }
-    return { today: d, statuses: st, streaks: s }
+  const [today] = useState(() => {
+    migrateToAnonNamespace()
+    return getTodaysCT()
   })
+  const [{ statuses, streaks }, setGameState] = useState(() => readGameState(getTodaysCT()))
+
+  const refreshGameState = () => setGameState(readGameState(today))
+
+  const [user, setUser] = useState<User | null>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    if (!showUserMenu) return
+    const handler = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showUserMenu])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    clearAccountLocalStorage()
+    clearCurrentUser()
+    setShowUserMenu(false)
+    refreshGameState()
+  }
 
   const [tutorialGame, setTutorialGame] = useState<string | null>(null)
   const [statsGame, setStatsGame] = useState<string | null>(null)
@@ -179,7 +220,36 @@ export default function HomeContent() {
   return (
     <main className="min-h-screen flex flex-col items-center p-6 pb-16">
       <div className="w-full max-w-sm md:max-w-2xl flex flex-col items-center gap-8 mt-8">
-        <div className="flex flex-col items-center gap-1">
+        <div className="relative w-full flex flex-col items-center gap-1">
+          <div className="absolute right-0 top-0" ref={userMenuRef}>
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(v => !v)}
+                  className="text-xs text-[#888] border border-[#e8e8e8] rounded-full px-3 py-1.5 hover:border-[#bbb] hover:text-[#555] transition-colors max-w-40 truncate"
+                >
+                  {user.email}
+                </button>
+                {showUserMenu && (
+                  <div className="absolute right-0 top-full mt-1 bg-white border border-[#e8e8e8] rounded-xl shadow-sm py-1 min-w-25 z-10">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left px-4 py-2 text-xs text-[#888] hover:text-[#1a1a1a] hover:bg-[#f8f8f8] transition-colors"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="text-xs text-[#888] border border-[#e8e8e8] rounded-full px-3 py-1.5 hover:border-[#bbb] hover:text-[#555] transition-colors"
+              >
+                Sign in
+              </button>
+            )}
+          </div>
           <h1 className="font-serif text-5xl text-center">Compound Games</h1>
           <p className="text-sm text-[#aaa] text-center pt-1">
             six daily puzzles · resets at midnight CT
@@ -283,6 +353,12 @@ export default function HomeContent() {
           gameName={GAMES.find(g => g.key === statsGame)?.name ?? statsGame}
           today={today}
           onClose={() => setStatsGame(null)}
+        />
+      )}
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          onAuthComplete={refreshGameState}
         />
       )}
     </main>

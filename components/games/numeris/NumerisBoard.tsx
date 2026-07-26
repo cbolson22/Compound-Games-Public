@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import posthog from "posthog-js";
 import { fmtTime } from "@/lib/format";
 import { saveResult, saveArchiveResult, getResult, getArchiveResult, computeStreak } from "@/lib/localStorage";
+import { saveScoreToSupabase } from "@/lib/supabaseScores";
 import {
   DndContext,
   DragOverlay,
@@ -204,13 +205,15 @@ export default function NumerisBoard({
     localStorage.removeItem(`numeris-inprog-${puzzleDate}`);
     const moves = moveCount.current;
     const share = `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} edit${moves !== 1 ? 's' : ''}\ncompound-games.com`;
-    const saveFn = isArchive ? saveArchiveResult : saveResult;
-    saveFn("numeris", puzzleDate, {
+    const result = {
       time_seconds: elapsed,
       completed_at: new Date().toISOString(),
       share,
       solveData: { slots: slotContents },
-    });
+    };
+    const saveFn = isArchive ? saveArchiveResult : saveResult;
+    saveFn("numeris", puzzleDate, result);
+    saveScoreToSupabase("numeris", puzzleDate, isArchive, result).catch(() => {});
     posthog.capture("numeris_completed", {
       puzzle_number: puzzleNumber,
       puzzle_date: puzzleDate,
