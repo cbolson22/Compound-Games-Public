@@ -324,7 +324,7 @@ export default function HomeContent() {
           className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white hover:bg-[#fafafa] transition-colors border border-[#f0f0f0] hover:border-[#ddd]"
         >
           <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium text-[#1a1a1a]">🧩 Browse past puzzles</span>
+            <span className="text-sm font-medium text-[#1a1a1a]">Browse past puzzles</span>
             <span className="text-xs text-[#aaa]">Play any archived puzzle</span>
           </div>
           <span className="text-[#bbb] text-sm">→</span>
