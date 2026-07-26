@@ -91,7 +91,7 @@ export default function AquarumBoard({
     solveSubmitted.current = true
     localStorage.removeItem(storageKey)
     const rotationCount = rotateCount.current
-    const share = `Aquarum #${puzzleNumber}\n🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''} · ⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+    const share = `Aquarum #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · 🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''}\ncompound-games.com`
     const saveFn = isArchive ? saveArchiveResult : saveResult
     saveFn('aquarum', puzzleDate, {
       time_seconds: elapsed,
@@ -115,7 +115,7 @@ export default function AquarumBoard({
       ? savedResult?.share
       : (() => {
           const rotationCount = rotateCount.current
-          return `Aquarum #${puzzleNumber}\n🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''} · ⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+          return `Aquarum #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · 🔄 ${rotationCount} rotation${rotationCount !== 1 ? 's' : ''}\ncompound-games.com`
         })()
     navigator.clipboard.writeText(shareText ?? '').then(() => {
       setCopied(true)

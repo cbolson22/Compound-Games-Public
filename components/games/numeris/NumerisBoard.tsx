@@ -203,7 +203,7 @@ export default function NumerisBoard({
     solveSubmitted.current = true;
     localStorage.removeItem(`numeris-inprog-${puzzleDate}`);
     const moves = moveCount.current;
-    const share = `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} change${moves !== 1 ? 's' : ''}\ncompound-games.com`;
+    const share = `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} edit${moves !== 1 ? 's' : ''}\ncompound-games.com`;
     const saveFn = isArchive ? saveArchiveResult : saveResult;
     saveFn("numeris", puzzleDate, {
       time_seconds: elapsed,
@@ -297,7 +297,7 @@ export default function NumerisBoard({
       ? savedResult?.share
       : (() => {
           const moves = moveCount.current;
-          return `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} change${moves !== 1 ? 's' : ''}\ncompound-games.com`;
+          return `Numeris #${puzzleNumber}\n⏱ ${fmtTime(elapsed)} · ${moves} edit${moves !== 1 ? 's' : ''}\ncompound-games.com`;
         })();
     navigator.clipboard.writeText(shareText ?? "").then(() => {
       setCopied(true);

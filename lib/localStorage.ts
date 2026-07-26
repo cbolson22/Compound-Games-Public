@@ -1,7 +1,7 @@
 import { dayBefore } from './dates'
 
 export type GameResult = {
-  time_seconds: number | null
+  time_seconds?: number | null
   score?: number | null
   completed_at: string
   share: string
@@ -77,7 +77,7 @@ export function getBestTimeEntry(game: string): { value: number; date: string } 
     if (!isDaily && !isArchive) continue
     try {
       const r = JSON.parse(localStorage.getItem(k!)!) as GameResult
-      if (r.time_seconds !== null && (best === null || r.time_seconds < best.value)) {
+      if (r.time_seconds != null && (best === null || r.time_seconds < best.value)) {
         const prefix = isDaily ? `cg_${game}_` : `cga_${game}_`
         best = { value: r.time_seconds, date: k!.replace(prefix, '') }
       }

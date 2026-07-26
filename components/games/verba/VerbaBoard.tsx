@@ -147,7 +147,6 @@ export default function VerbaBoard({
     const share = `Verba #${puzzleNumber}\n📊 ${totalScore} pts${wordLine ? `\n${wordLine}` : ''}\ncompound-games.com`
     const saveFn = isArchive ? saveArchiveResult : saveResult
     saveFn('verba', puzzleDate, {
-      time_seconds: null,
       score: totalScore,
       completed_at: new Date().toISOString(),
       share,
@@ -281,7 +280,7 @@ export default function VerbaBoard({
                 {streak > 0 && <div className={styles.solvedSub}>{streak}🔥</div>}
                 <button
                   onClick={handleShare}
-                  className="mt-3 px-4 py-1.5 rounded-full text-xs font-medium bg-[#1a1a1a] text-white hover:bg-[#333] transition-colors"
+                  className="mt-3 mb-6 px-4 py-1.5 rounded-full text-xs font-medium bg-[#1a1a1a] text-white hover:bg-[#333] transition-colors"
                 >
                   {copied ? 'Copied!' : 'Share result'}
                 </button>

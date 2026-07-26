@@ -174,8 +174,7 @@ export default function LumisBoard({
       })
       .join(' ')
     const resets = resetCount.current
-    const resetStr = resets > 0 ? ` · ${resets} reset${resets !== 1 ? 's' : ''}` : ''
-    const share = `Lumis #${puzzleNumber}\n${colorEmojis}${resetStr}\n⏱ ${fmtTime(elapsed)}\ncompound-games.com`
+    const share = `Lumis #${puzzleNumber}\nFirst pieces placed: ${colorEmojis}\n⏱ ${fmtTime(elapsed)} · ${resets} reset${resets !== 1 ? 's' : ''}\ncompound-games.com`
     computedShare.current = share
     const saveFn = isArchive ? saveArchiveResult : saveResult
     saveFn('lumis', puzzleDate, {
@@ -282,9 +281,8 @@ export default function LumisBoard({
 
   const displayTime = alreadyPlayed ? (savedResult?.time_seconds ?? 0) : elapsed
   const isDone = solved || alreadyPlayed
-  const shareText = alreadyPlayed ? savedResult?.share : computedShare.current
-
   const handleShare = () => {
+    const shareText = alreadyPlayed ? savedResult?.share : computedShare.current
     navigator.clipboard.writeText(shareText ?? '').then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
