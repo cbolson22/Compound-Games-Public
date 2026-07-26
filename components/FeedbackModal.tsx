@@ -8,6 +8,7 @@ const MAX = 500
 
 export default function FeedbackModal({ onClose }: { onClose: () => void }) {
   const [category, setCategory] = useState<string>('General')
+  const [from, setFrom] = useState('')
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
@@ -22,7 +23,7 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
       const res = await fetch('/api/send-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, category }),
+        body: JSON.stringify({ message, category, from: from.trim() || 'Anonymous' }),
       })
       if (!res.ok) throw new Error('Failed')
       setDone(true)
@@ -77,6 +78,14 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
                   </button>
                 ))}
               </div>
+              <input
+                type="text"
+                value={from}
+                onChange={e => setFrom(e.target.value)}
+                placeholder="Name or email (optional)"
+                maxLength={100}
+                className="w-full px-4 py-3 border border-[#e0e0e0] rounded-2xl text-sm outline-none focus:border-[#aaa] transition-colors"
+              />
               <div className="flex flex-col gap-1">
                 <textarea
                   value={message}

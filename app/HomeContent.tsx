@@ -229,7 +229,7 @@ export default function HomeContent() {
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(v => !v)}
-                  className="text-xs text-[#888] border border-[#e8e8e8] rounded-full px-3 py-1.5 hover:border-[#bbb] hover:text-[#555] transition-colors max-w-40 truncate"
+                  className="text-xs text-[#888] border border-[#e8e8e8] rounded-full px-3 py-1.5 hover:border-[#bbb] hover:text-[#555] transition-colors block max-w-32 truncate"
                 >
                   {user.email}
                 </button>
@@ -319,44 +319,40 @@ export default function HomeContent() {
           })}
         </div>
 
-        <div className="w-full flex flex-col gap-3">
-          <Link
-            href="/archive"
-            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white hover:bg-[#fafafa] transition-colors border border-[#f0f0f0] hover:border-[#ddd]"
-          >
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-[#1a1a1a]">🧩 Browse past puzzles</span>
-              <span className="text-xs text-[#aaa]">Play any archived puzzle</span>
-            </div>
-            <span className="text-[#bbb] text-sm">→</span>
-          </Link>
+        <Link
+          href="/archive"
+          className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white hover:bg-[#fafafa] transition-colors border border-[#f0f0f0] hover:border-[#ddd]"
+        >
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium text-[#1a1a1a]">🧩 Browse past puzzles</span>
+            <span className="text-xs text-[#aaa]">Play any archived puzzle</span>
+          </div>
+          <span className="text-[#bbb] text-sm">→</span>
+        </Link>
+
+        <div className="flex items-center gap-2">
           <a
             href="https://buymeacoffee.com/compoundgames"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white hover:bg-[#fafafa] transition-colors border border-[#f0f0f0] hover:border-[#ddd]"
             onClick={() => posthog.capture('support_clicked')}
+            className="text-[0.65rem] text-[#ccc] hover:text-[#aaa] transition-colors uppercase tracking-widest"
           >
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-[#1a1a1a]">☕ Support this project</span>
-              <span className="text-xs text-[#aaa]">Any support is appreciated!</span>
-            </div>
-            <span className="text-[#bbb] text-sm">→</span>
+            Support the Site
           </a>
-        </div>
-
-        <div className="flex items-center gap-4">
+          <span className="text-[0.65rem] text-[#ddd]">·</span>
           <button
             onClick={() => setShowFeedback(true)}
             className="text-[0.65rem] text-[#ccc] hover:text-[#aaa] transition-colors uppercase tracking-widest"
           >
-            Leave feedback
+            Feedback Form
           </button>
+          <span className="text-[0.65rem] text-[#ddd]">·</span>
           <button
             onClick={() => setShowPrivacy(true)}
             className="text-[0.65rem] text-[#ccc] hover:text-[#aaa] transition-colors uppercase tracking-widest"
           >
-            Privacy
+            Privacy Policy
           </button>
         </div>
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, category } = await req.json()
+    const { message, category, from } = await req.json()
 
     const apiKey = process.env.RESEND_API_KEY
     if (!apiKey) {
@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: 'Compound Games <onboarding@resend.dev>',
       to: 'cbolson2012@gmail.com',
-      subject: `[Feedback] ${category}`,
-      text: `Category: ${category}\n\n${message}`,
+      subject: `[Feedback] ${category} from ${from}`,
+      text: `From: ${from}\nCategory: ${category}\n\n${message}`,
     })
 
     return NextResponse.json({ ok: true })
