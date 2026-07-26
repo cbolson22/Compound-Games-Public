@@ -9,6 +9,7 @@ import { getTodaysCT, dayBefore } from '@/lib/dates'
 import { hasPlayed, computeStreak, getLongestStreak, getBestTimeEntry, getBestScoreEntry, getVerbaBestWord, migrateToAnonNamespace, clearAccountLocalStorage, clearCurrentUser } from '@/lib/localStorage'
 import { fmtTime } from '@/lib/format'
 import AuthModal from '@/components/AuthModal'
+import FeedbackModal from '@/components/FeedbackModal'
 
 const GAMES = [
   { href: '/numeris', name: 'Numeris', desc: 'Equation Puzzle', key: 'numeris' },
@@ -216,6 +217,8 @@ export default function HomeContent() {
 
   const [tutorialGame, setTutorialGame] = useState<string | null>(null)
   const [statsGame, setStatsGame] = useState<string | null>(null)
+  const [showPrivacy, setShowPrivacy] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
 
   return (
     <main className="min-h-screen flex flex-col items-center p-6 pb-16">
@@ -342,6 +345,21 @@ export default function HomeContent() {
           </a>
         </div>
 
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowFeedback(true)}
+            className="text-[0.65rem] text-[#ccc] hover:text-[#aaa] transition-colors uppercase tracking-widest"
+          >
+            Leave feedback
+          </button>
+          <button
+            onClick={() => setShowPrivacy(true)}
+            className="text-[0.65rem] text-[#ccc] hover:text-[#aaa] transition-colors uppercase tracking-widest"
+          >
+            Privacy
+          </button>
+        </div>
+
       </div>
 
       {tutorialGame && (
@@ -360,6 +378,41 @@ export default function HomeContent() {
           onClose={() => setShowAuthModal(false)}
           onAuthComplete={refreshGameState}
         />
+      )}
+      {showFeedback && (
+        <FeedbackModal onClose={() => setShowFeedback(false)} />
+      )}
+      {showPrivacy && (
+        <div className="fixed inset-0 bg-black/45 flex items-center justify-center z-50 p-6" onClick={() => setShowPrivacy(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm flex flex-col overflow-hidden max-h-[85vh]" onClick={e => e.stopPropagation()}>
+            <div className="px-7 pt-7 pb-4 border-b border-[#f5f5f5]">
+              <p className="text-xs text-[#bbb] uppercase tracking-widest mb-1">Legal</p>
+              <h2 className="font-serif text-3xl text-[#1a1a1a]">Privacy</h2>
+            </div>
+            <div className="px-7 py-5 overflow-y-auto flex flex-col gap-4 text-sm text-[#555] leading-snug">
+              <div>
+                <p className="font-medium text-[#1a1a1a] mb-1">Your device</p>
+                <p>Progress and scores are saved in your browser&apos;s local storage, private to your device. Data never leaves it unless you create an account and choose to transfer it.</p>
+              </div>
+              <div>
+                <p className="font-medium text-[#1a1a1a] mb-1">Analytics</p>
+                <p>We use PostHog to understand how people play. It collects anonymous usage data (puzzle completions, page views). A random session ID is stored in your browser, not linked to you. No personal data is collected or sold.</p>
+              </div>
+              <div>
+                <p className="font-medium text-[#1a1a1a] mb-1">Accounts (optional)</p>
+                <p>If you create an account, your email and scores are stored securely (Supabase). Email is used only for sign-in, no marketing, no sharing. Request deletion anytime via the feedback form.</p>
+              </div>
+            </div>
+            <div className="px-7 pb-7 pt-2">
+              <button
+                className="w-full py-3 rounded-full bg-[#1a1a1a] text-white text-sm font-medium hover:opacity-85 transition-opacity"
+                onClick={() => setShowPrivacy(false)}
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   )
