@@ -6,7 +6,7 @@ import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { getTodaysCT, dayBefore } from '@/lib/dates'
-import { hasPlayed, computeStreak, getLongestStreak, getBestTimeEntry, getBestScoreEntry, getVerbaBestWord, migrateToAnonNamespace, clearAccountLocalStorage, clearCurrentUser } from '@/lib/localStorage'
+import { hasPlayed, computeStreak, getLongestStreak, getBestTimeEntry, getBestScoreEntry, getLowestScoreEntry, getVerbaBestWord, migrateToAnonNamespace, clearAccountLocalStorage, clearCurrentUser } from '@/lib/localStorage'
 import { fmtTime } from '@/lib/format'
 import AuthModal from '@/components/AuthModal'
 import FeedbackModal from '@/components/FeedbackModal'
@@ -115,6 +115,7 @@ function StatsModal({ game, gameName, today, onClose }: { game: string; gameName
   const longestStreak = getLongestStreak(game)
   const bestTimeEntry = getBestTimeEntry(game)
   const bestScoreEntry = getBestScoreEntry(game)
+  const fewestWrongEntry = game === 'compondus' ? getLowestScoreEntry(game) : null
   const verbaBestWord = game === 'verba' ? getVerbaBestWord() : null
 
   const puzzleHref = (date: string) =>
@@ -129,7 +130,7 @@ function StatsModal({ game, gameName, today, onClose }: { game: string; gameName
           <h2 className="font-serif text-3xl text-[#1a1a1a]">{gameName}</h2>
         </div>
 
-        {currentStreak === 0 && longestStreak === 0 && bestTimeEntry == null && bestScoreEntry == null ? (
+        {currentStreak === 0 && longestStreak === 0 && bestTimeEntry == null && bestScoreEntry == null && fewestWrongEntry == null ? (
           <div className="px-7 pb-7">
             <p className="text-sm text-[#bbb]">No plays yet — come back after your first game!</p>
           </div>
@@ -141,9 +142,9 @@ function StatsModal({ game, gameName, today, onClose }: { game: string; gameName
             </div>
 
             <div className="px-7 pb-2">
-              {game !== 'compondus' && bestTimeEntry && <StatRow label="Best time" value={fmtTime(bestTimeEntry.value)} href={puzzleHref(bestTimeEntry.date)} />}
+              {game !== 'compondus' && game !== 'verba' && bestTimeEntry && <StatRow label="Best time" value={fmtTime(bestTimeEntry.value)} href={puzzleHref(bestTimeEntry.date)} />}
               {game === 'verba' && bestScoreEntry && <StatRow label="Best score" value={`${bestScoreEntry.value} pts`} href={puzzleHref(bestScoreEntry.date)} />}
-              {game === 'compondus' && bestScoreEntry && <StatRow label="Fewest wrong guesses" value={bestScoreEntry.value} href={puzzleHref(bestScoreEntry.date)} />}
+              {game === 'compondus' && fewestWrongEntry && <StatRow label="Fewest wrong guesses" value={fewestWrongEntry.value} href={puzzleHref(fewestWrongEntry.date)} />}
               {game === 'verba' && verbaBestWord && <StatRow label="Best word" value={`${verbaBestWord.word} · ${verbaBestWord.score} pts`} href={puzzleHref(verbaBestWord.date)} />}
             </div>
           </>

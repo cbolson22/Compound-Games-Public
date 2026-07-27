@@ -281,6 +281,28 @@ export function getBestScoreEntry(game: string): { value: number; date: string }
   return best
 }
 
+export function getLowestScoreEntry(game: string): { value: number; date: string } | null {
+  if (typeof window === 'undefined') return null
+  const loggedIn = isLoggedIn()
+  const dailyPrefix = loggedIn ? `cg_${game}_` : `cgx_${game}_`
+  const archivePrefix = loggedIn ? `cga_${game}_` : `cgxa_${game}_`
+  let best: { value: number; date: string } | null = null
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i)
+    const isD = k?.startsWith(dailyPrefix)
+    const isA = k?.startsWith(archivePrefix)
+    if (!isD && !isA) continue
+    try {
+      const r = JSON.parse(localStorage.getItem(k!)!) as GameResult
+      if (r.score != null && (best === null || r.score < best.value)) {
+        const prefix = isD ? dailyPrefix : archivePrefix
+        best = { value: r.score, date: k!.replace(prefix, '') }
+      }
+    } catch { /* skip */ }
+  }
+  return best
+}
+
 export function getVerbaBestWord(): { word: string; score: number; date: string } | null {
   if (typeof window === 'undefined') return null
   const loggedIn = isLoggedIn()
