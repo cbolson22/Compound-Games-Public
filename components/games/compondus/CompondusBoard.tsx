@@ -263,9 +263,9 @@ export default function CompondusBoard({
       {played && (
         <div className={styles.solvedBanner}>
           <div className={styles.solvedTxt}>Solved!</div>
-          {wrongCount === 0
+          {displayScore === 0
             ? <div className={styles.solvedSub}>Perfect — no wrong guesses</div>
-            : <div className={styles.solvedSub}>{wrongCount} wrong guess{wrongCount !== 1 ? 'es' : ''}</div>
+            : <div className={styles.solvedSub}>{displayScore} wrong guess{displayScore !== 1 ? 'es' : ''}</div>
           }
           <button
             onClick={handleShare}
