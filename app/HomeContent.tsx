@@ -337,21 +337,21 @@ export default function HomeContent() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => posthog.capture('support_clicked')}
-            className="text-[0.65rem] text-[#ccc] hover:text-[#aaa] transition-colors uppercase tracking-widest"
+            className="text-[0.65rem] text-[#999] hover:text-[#555] transition-colors uppercase tracking-widest"
           >
             Support the Site
           </a>
-          <span className="text-[0.65rem] text-[#ddd]">·</span>
+          <span className="text-[0.65rem] text-[#bbb]">·</span>
           <button
             onClick={() => setShowFeedback(true)}
-            className="text-[0.65rem] text-[#ccc] hover:text-[#aaa] transition-colors uppercase tracking-widest"
+            className="text-[0.65rem] text-[#999] hover:text-[#555] transition-colors uppercase tracking-widest"
           >
             Feedback Form
           </button>
-          <span className="text-[0.65rem] text-[#ddd]">·</span>
+          <span className="text-[0.65rem] text-[#bbb]">·</span>
           <button
             onClick={() => setShowPrivacy(true)}
-            className="text-[0.65rem] text-[#ccc] hover:text-[#aaa] transition-colors uppercase tracking-widest"
+            className="text-[0.65rem] text-[#999] hover:text-[#555] transition-colors uppercase tracking-widest"
           >
             Privacy Policy
           </button>
