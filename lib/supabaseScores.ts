@@ -22,7 +22,7 @@ export async function saveScoreToSupabase(
     share: result.share,
     solve_data: result.solveData ?? null,
     completed_at: result.completed_at,
-  }, { onConflict: 'user_id,game,puzzle_date' })
+  }, { onConflict: 'user_id,game,puzzle_date', ignoreDuplicates: true })
 }
 
 // Fetch all scores from DB and write to cg_/cga_ localStorage namespace, then set current user
