@@ -22,7 +22,7 @@ export async function saveScoreToSupabase(
     share: result.share,
     solve_data: result.solveData ?? null,
     completed_at: result.completed_at,
-  }, { onConflict: 'user_id,game,puzzle_date,is_archive' })
+  }, { onConflict: 'user_id,game,puzzle_date' })
 }
 
 // Fetch all scores from DB and write to cg_/cga_ localStorage namespace, then set current user
@@ -62,7 +62,7 @@ export async function syncAnonPlaysToSupabase(): Promise<void> {
     completed_at: result.completed_at,
   }))
   await supabase.from('public_scores').upsert(rows, {
-    onConflict: 'user_id,game,puzzle_date,is_archive',
+    onConflict: 'user_id,game,puzzle_date',
     ignoreDuplicates: true,
   })
   transferAnonToAccount(plays)
