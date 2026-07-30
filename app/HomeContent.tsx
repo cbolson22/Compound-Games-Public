@@ -20,6 +20,15 @@ const GAMES = [
   { href: '/loopa', name: 'Loopa', desc: 'Close the Loop', key: 'loopa' },
 ] as const
 
+const GAME_COLORS: Record<string, string> = {
+  numeris: '#3b82f6',
+  lumis: '#f59e0b',
+  verba: '#10b981',
+  aquarum: '#06b6d4',
+  compondus: '#8b5cf6',
+  loopa: '#6366f1',
+}
+
 const TUTORIAL_CONTENT: Record<string, { title: string; body: string }> = {
   numeris: {
     title: 'How to play Numeris',
@@ -272,12 +281,17 @@ export default function HomeContent() {
             return (
               <div
                 key={g.key}
-                className="relative flex items-start gap-3 px-6 py-6 border border-[#f0f0f0] rounded-2xl hover:border-[#ddd] transition-colors bg-white"
+                className={`relative flex items-start gap-3 px-6 py-6 border rounded-2xl transition-all bg-white shadow-sm hover:shadow-md ${
+                  status === 'done' ? 'border-[#e8e8e8]' : 'border-[#e8e8e8] hover:border-[#d0d0d0]'
+                }`}
               >
                 <Link href={g.href} className="absolute inset-0 rounded-2xl" aria-label={g.name} />
                 <div className="flex-1 select-none">
-                  <div className="font-serif text-2xl">{g.name}</div>
-                  <div className="text-sm text-[#aaa]">{g.desc}</div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GAME_COLORS[g.key] }} />
+                    <div className="font-serif text-2xl">{g.name}</div>
+                  </div>
+                  <div className="text-sm text-[#aaa] pl-4">{g.desc}</div>
                 </div>
                 <div className="flex flex-col items-end gap-2 select-none">
                   <div className="flex items-center gap-1.5">
@@ -311,7 +325,7 @@ export default function HomeContent() {
                       <span className="text-xs font-medium text-[#d97706] bg-[#fef3c7] px-2 py-0.5 rounded-full">Continue</span>
                     )}
                     {status === 'play' && (
-                      <span className="text-xs font-medium text-[#aaa] bg-[#f5f5f5] px-2 py-0.5 rounded-full">Play</span>
+                      <span className="text-xs font-medium text-[#888] bg-white border border-[#e8e8e8] px-2 py-0.5 rounded-full">Play</span>
                     )}
                   </div>
                 </div>
@@ -322,7 +336,7 @@ export default function HomeContent() {
 
         <Link
           href="/archive"
-          className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white hover:bg-[#fafafa] transition-colors border border-[#f0f0f0] hover:border-[#ddd]"
+          className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white transition-all border border-[#e8e8e8] hover:border-[#d0d0d0] shadow-sm hover:shadow-md"
         >
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium text-[#1a1a1a]">Browse past puzzles</span>

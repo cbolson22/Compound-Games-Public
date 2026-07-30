@@ -48,7 +48,7 @@ export default function ArchiveGameContent({ game, dates }: { game: string; date
                 <Link
                   key={date}
                   href={`/archive/${game}/${date}`}
-                  className="flex items-center justify-between px-5 py-4 border border-[#f0f0f0] rounded-2xl hover:border-[#ddd] transition-colors bg-white"
+                  className="flex items-center justify-between px-5 py-4 border border-[#e8e8e8] rounded-2xl hover:border-[#d0d0d0] transition-all bg-white shadow-sm hover:shadow-md"
                 >
                   <div>
                     <div className="text-sm font-medium text-[#1a1a1a]">{formatted}</div>
@@ -61,7 +61,7 @@ export default function ArchiveGameContent({ game, dates }: { game: string; date
                     <span className="text-xs font-medium text-[#d97706] bg-[#fef3c7] px-2 py-0.5 rounded-full">Continue</span>
                   )}
                   {status === 'play' && (
-                    <span className="text-xs font-medium text-[#aaa] bg-[#f5f5f5] px-2 py-0.5 rounded-full">Play</span>
+                    <span className="text-xs font-medium text-[#888] bg-white border border-[#e8e8e8] px-2 py-0.5 rounded-full">Play</span>
                   )}
                 </Link>
               )
